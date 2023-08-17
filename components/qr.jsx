@@ -1,65 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Camera, CameraType, camaraRef } from 'expo-camera';
+import { Text, View, StyleSheet, Button, Image, TouchableOpacity } from 'react-native';
+import { BarCodeScanner } from 'expo-barcode-scanner';
 
-export default function Qr() {
-    const navigation = useNavigation();
-    const [type, setType] = useState(CameraType.back);
-    const [permission, requestPermission] = Camera.useCameraPermissions();
+export default function App() {
+  const [hasPermission, setHasPermission] = useState(null);
+  const [scanned, setScanned] = useState(false);
 
+  useEffect(() => {
+    const getBarCodeScannerPermissions = async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+    };
 
-    if (!permission) {
-        return <View />;
-    }
+    getBarCodeScannerPermissions();
+  }, []);
 
-    if (!permission.granted) {
-        return (
-            <View style={styles.container}>
-                <Text style={{ textAlign: 'center' }}>Usted necesita brindar permisos para usar la camara</Text>
-                <Button onPress={requestPermission} title="grant permission" />
-            </View>
-        );
-    }
+  const handleBarCodeScanned = ({ type, data }) => {
+    setScanned(true);
+    alert(`Bar code with type ${type} and data ${data} has been scanned!`);
+  };
 
-    function toggleCameraType() {
-        setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
-      }
+  if (hasPermission === null) {
+    return <Text>Requesting for camera permission</Text>;
+  }
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
 
-    return (
-        <View style={styles.container}>
-           <Camera style={styles.camera} type={type}>
-                <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
-                    <Text style={styles.text}>Flip Camera</Text>
-                </TouchableOpacity>
+  return (
+    <View style={styles.container}>
+      <BarCodeScanner onBarCodeScanned={scanned ? undefined : handleBarCodeScanned} style={StyleSheet.absoluteFillObject}>
+      <View style={{marginTop:50, alignSelf: 'center'}}>
+                    <Image source={{ uri: 'https://media1.thehungryjpeg.com/thumbs2/ori_4208435_29eq7q29mxgwrrmkklgfz9uilwqvjgnozkapouif_gym-lion-esport-mascot-logo-design.png' }} style={{ width: 150, height: 90 }} />
                 </View>
-            </Camera>
-        </View>
-    );
+      </BarCodeScanner>
+      {scanned && 
+       <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
+             <Text style={{color:"white"}}>SCANEAR DE NUEVO</Text>
+        </TouchableOpacity>
+     
+      }
+    
+    </View>
+  );
 }
+
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: 'center',
-    },
-    camera: {
-      flex: 1,
-    },
-    buttonContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      backgroundColor: 'transparent',
-      margin: 64,
-    },
-    button: {
-      flex: 1,
-      alignSelf: 'flex-end',
-      alignItems: 'center',
-    },
-    text: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: 'white',
-    },
-  });
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
+    alignSelf: 'stretch', 
+    backgroundColor: "#34495E"
+  },
+  button: {
+    backgroundColor: '#3A4F64',
+    padding: 10,
+    marginBottom: 30,
+    borderRadius: 10,
+    width: 180,
+    height: 50,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+
+
+  },
+});
