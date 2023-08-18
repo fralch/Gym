@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Button, Image, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, Button, Image, TouchableOpacity, Modal, Dimensions   } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+
+const screenHeight = Dimensions.get('window').height;
 
 export default function App() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -28,6 +31,10 @@ export default function App() {
     return <Text>No access to camera</Text>;
   }
 
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
   return (
     <View style={styles.container}>
       <BarCodeScanner onBarCodeScanned={scanned ? undefined : handleBarCodeScanned} style={StyleSheet.absoluteFillObject}>
@@ -35,13 +42,31 @@ export default function App() {
                     <Image source={{ uri: 'https://media1.thehungryjpeg.com/thumbs2/ori_4208435_29eq7q29mxgwrrmkklgfz9uilwqvjgnozkapouif_gym-lion-esport-mascot-logo-design.png' }} style={{ width: 150, height: 90 }} />
                 </View>
       </BarCodeScanner>
-      {scanned && 
-       <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
+      {!scanned && 
+       <TouchableOpacity style={styles.button} onPress={() => toggleModal()}>
              <Text style={{color:"white"}}>SCANEAR DE NUEVO</Text>
         </TouchableOpacity>
      
       }
-    
+
+      <Modal visible={isModalVisible} animationType="slide">
+        <View style={[styles.modalContainer, { height: screenHeight * 0.7 }]}>
+          {/* Crear la interfas para mostrar los datos del usuario, Foto, nombre, Fecha */}
+  
+          <Image source={{ uri: 'https://scontent.fjau2-1.fna.fbcdn.net/v/t39.30808-6/340986589_259945029721074_1388666719680320276_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=730e14&_nc_eui2=AeFY_6CqFfCRPaAY9FvFtybS_rUKpN1CnhT-tQqk3UKeFEkXayg6mLQLgzUeZoCRZgjEVb4utEXPUOg1GbvZB9bi&_nc_ohc=BVrDOCXNdUQAX9KfvF_&_nc_ht=scontent.fjau2-1.fna&oh=00_AfDcJS_9GjdBnEHKDQGpiV2-JLDzd1x4A8CUmDaTbdXsLA&oe=64E465C0' }} style={styles.fotoperfil} />
+          
+          <Text style={{color:"#aaa", fontSize:18, marginVertical:5}}>Nombre:<Text style={{color:"white", fontSize:18}}> Alexander Frank Cairampoma</Text> </Text>
+          <Text style={{color:"#aaa", fontSize:18, marginVertical:5}}>DNI: <Text style={{color:"white", fontSize:18}}> 12345678</Text></Text>
+          <Text style={{color:"#aaa", fontSize:18, marginVertical:5}}>Fecha Inicio: <Text style={{color:"white", fontSize:18}}> 19-09-2022</Text></Text>
+          <Text style={{color:"#aaa", fontSize:18, marginVertical:5}}>Fecha Fin: <Text style={{color:"white", fontSize:18}}>19-09-2023</Text></Text>
+          <Text style={{color:"#aaa", fontSize:18, marginVertical:5}}>Dias restantes: <Text style={{color:"white", fontSize:18}}>298</Text></Text>
+          <TouchableOpacity style={styles.button} onPress={() => toggleModal()}>
+              <Text style={{color:"white"}}>CERRAR</Text>
+          </TouchableOpacity>
+          
+
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -68,4 +93,18 @@ const styles = StyleSheet.create({
 
 
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: "#34495E"
+  },
+  fotoperfil: {
+    width: 150, 
+    height: 150, 
+    marginVertical:20, 
+    borderRadius: 100,
+    borderWidth: 2,
+    borderColor: "white"
+  }
 });
