@@ -4,7 +4,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Qr from './components/qr';
-import Detail from './components/detail';
 
 
 const Stack = createNativeStackNavigator();
@@ -14,7 +13,6 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Qr" options={{headerShown: false}}  component={Qr} />
-        <Stack.Screen name="Detail" options={{headerShown: false}}  component={Detail} />
       </Stack.Navigator>
     </NavigationContainer>
   );
