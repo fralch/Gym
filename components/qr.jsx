@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, Button, Image, TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 
+import { Foundation , FontAwesome5 } from '@expo/vector-icons'; 
+
 const screenHeight = Dimensions.get('window').height;
 
 export default function App() {
@@ -67,16 +69,27 @@ export default function App() {
 
         </View>
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => Linking.openURL('https://www.facebook.com/frank.cairampoma.castro')}
-          >
-            <Image
-              source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/2021_Facebook_icon.svg/2048px-2021_Facebook_icon.svg.png' }}
-              style={{ width: 50, height: 50 }}
-            />
-            <Text style={styles.socialButtonText}>Facebook</Text>
-          </TouchableOpacity>
+          <Text style={styles.socialButtonText}>by Frank Cairampoma</Text>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => Linking.openURL('https://www.facebook.com/frank.cairampoma.castro')}
+            >
+              <Foundation name="social-facebook" size={30} color="#bbb" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => Linking.openURL('https://www.instagram.com/fralch/')}
+            >
+             <FontAwesome5 name="instagram" size={26} color="#bbb" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => Linking.openURL('https://www.linkedin.com/in/frank-cairampoma-78454895/')}
+            >
+             <Foundation name="social-linkedin" size={30} color="#bbb" />
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
@@ -122,7 +135,7 @@ const styles = StyleSheet.create({
   footer: {
     height: screenHeight * 0.1,
     backgroundColor: '#34495E',
-    flexDirection: 'row',
+
     justifyContent: 'space-around',
     alignItems: 'center',
   },
@@ -130,9 +143,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 10,
   },
   socialButtonText: {
-    color: 'white',
+    color: '#bbb',
     fontSize: 16,
   },
 });
