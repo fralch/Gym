@@ -22,8 +22,7 @@ export default function App() {
 
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
-    alert(`Bar code with type ${type} and data ${data} has been scanned!`);
-    console.log(typeof JSON.parse(data));
+    toggleModal();
   };
 
   if (hasPermission === null) {
@@ -35,6 +34,7 @@ export default function App() {
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
+    
   };
 
   return (
@@ -45,7 +45,7 @@ export default function App() {
         </View>
       </BarCodeScanner>
       {!scanned &&
-        <TouchableOpacity style={styles.button} onPress={() => toggleModal()}>
+        <TouchableOpacity style={styles.button} onPress={() => handleBarCodeScanned()}>
           <Text style={{ color: "white" }}>SCANEAR DE NUEVO</Text>
         </TouchableOpacity>
 
@@ -62,7 +62,11 @@ export default function App() {
           <Text style={{ color: "#aaa", fontSize: 18, marginVertical: 5 }}>Fecha Inicio: <Text style={{ color: "white", fontSize: 18 }}> 19-09-2022</Text></Text>
           <Text style={{ color: "#aaa", fontSize: 18, marginVertical: 5 }}>Fecha Fin: <Text style={{ color: "white", fontSize: 18 }}>19-09-2023</Text></Text>
           <Text style={{ color: "#aaa", fontSize: 18, marginVertical: 5 }}>Dias restantes: <Text style={{ color: "white", fontSize: 18 }}>298</Text></Text>
-          <TouchableOpacity style={styles.button} onPress={() => toggleModal()}>
+          <TouchableOpacity style={styles.button} 
+            onPress={() => {
+              setScanned(false);
+              toggleModal(); 
+            }}>
             <Text style={{ color: "white" }}>CERRAR</Text>
           </TouchableOpacity>
 
