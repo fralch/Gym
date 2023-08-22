@@ -20,10 +20,12 @@ export default function App() {
     getBarCodeScannerPermissions();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const handleBarCodeScanned = () => {
     setScanned(true);
     toggleModal();
   };
+
+  
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission</Text>;
@@ -45,7 +47,7 @@ export default function App() {
         </View>
       </BarCodeScanner>
       {!scanned &&
-        <TouchableOpacity style={styles.button} onPress={() => handleBarCodeScanned()}>
+        <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
           <Text style={{ color: "white" }}>SCANEAR DE NUEVO</Text>
         </TouchableOpacity>
 

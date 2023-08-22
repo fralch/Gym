@@ -15,14 +15,23 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access camera.",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["CAMERA" ]
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.fralch.Gym"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,13 +42,18 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
         }
-      ], 
+      ],
       [
         "expo-barcode-scanner",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access camera."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cea10d30-b6d1-4756-976a-fafacc4769e8"
+      }
+    }
   }
 }
