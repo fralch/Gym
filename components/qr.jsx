@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Button, Image, TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
+import { Text, View, StyleSheet, Button,  TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import { Image } from 'expo-image';
 
 import { Foundation , FontAwesome5 } from '@expo/vector-icons'; 
 
@@ -43,7 +44,7 @@ export default function App() {
     <View style={styles.container}>
       <BarCodeScanner onBarCodeScanned={scanned ? undefined : handleBarCodeScanned} style={StyleSheet.absoluteFillObject}>
         <View style={{ marginTop: 50, alignSelf: 'center' }}>
-          <Image source={{ uri: 'https://media1.thehungryjpeg.com/thumbs2/ori_4208435_29eq7q29mxgwrrmkklgfz9uilwqvjgnozkapouif_gym-lion-esport-mascot-logo-design.png' }} style={{ width: 150, height: 90 }} />
+          <Image source={ require('../assets/imgs/logo.png')  } transition={1000} style={{ width: 150, height: 90 }} />
         </View>
       </BarCodeScanner>
       {!scanned &&
@@ -57,7 +58,7 @@ export default function App() {
         <View style={[styles.modalContainer, { height: screenHeight * 0.7 }]}>
           {/* Crear la interfas para mostrar los datos del usuario, Foto, nombre, Fecha */}
 
-          <Image source={{ uri: 'https://scontent.fjau2-1.fna.fbcdn.net/v/t39.30808-6/340986589_259945029721074_1388666719680320276_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=730e14&_nc_eui2=AeFY_6CqFfCRPaAY9FvFtybS_rUKpN1CnhT-tQqk3UKeFEkXayg6mLQLgzUeZoCRZgjEVb4utEXPUOg1GbvZB9bi&_nc_ohc=BVrDOCXNdUQAX9KfvF_&_nc_ht=scontent.fjau2-1.fna&oh=00_AfDcJS_9GjdBnEHKDQGpiV2-JLDzd1x4A8CUmDaTbdXsLA&oe=64E465C0' }} style={styles.fotoperfil} />
+          <Image source={ require('../assets/imgs/user.jpg') } style={styles.fotoperfil} transition={1000} />
 
           <Text style={{ color: "#aaa", fontSize: 18, marginVertical: 5 }}>Nombre:<Text style={{ color: "white", fontSize: 18 }}> Alexander Frank Cairampoma</Text> </Text>
           <Text style={{ color: "#aaa", fontSize: 18, marginVertical: 5 }}>DNI: <Text style={{ color: "white", fontSize: 18 }}> 12345678</Text></Text>
