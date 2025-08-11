@@ -45,7 +45,7 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <StatusBar barStyle="light-content" backgroundColor="#4A90E2" />
+      <StatusBar barStyle="light-content" backgroundColor="#e24a4a" />
       <View style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -144,7 +144,7 @@ function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
     <TouchableOpacity style={styles.menuItem}>
       <View style={styles.menuItemLeft}>
         <View style={styles.menuIconContainer}>
-          <MaterialIcons name={icon} size={20} color="#4A90E2" />
+          <MaterialIcons name={icon} size={20} color="#e24a4a" />
         </View>
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 20,
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#e24a4a',
   },
 
   headerButton: {
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
 
   blueBackground: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#e24a4a',
     width: '100%',
     height: 120,
     borderBottomLeftRadius: 50,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     borderRadius: 8,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#fde3e3',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
