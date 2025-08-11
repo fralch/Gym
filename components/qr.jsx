@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, Button,  TouchableOpacity, Modal, Dimensions, Linking } from 'react-native';
-import { BarCodeScanner } from 'expo-barcode-scanner';
+import { CameraView, Camera } from 'expo-camera';
 import { Image } from 'expo-image';
 
 import { Foundation , FontAwesome5 } from '@expo/vector-icons'; 
@@ -13,12 +13,12 @@ export default function App() {
   const [isModalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
-    const getBarCodeScannerPermissions = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
+    const getCameraPermissions = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
     };
 
-    getBarCodeScannerPermissions();
+    getCameraPermissions();
   }, []);
 
   const handleBarCodeScanned = () => {
@@ -42,11 +42,16 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <BarCodeScanner onBarCodeScanned={scanned ? undefined : handleBarCodeScanned} style={StyleSheet.absoluteFillObject}>
+      <CameraView 
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} 
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr", "pdf417"],
+        }}
+        style={StyleSheet.absoluteFillObject}>
         <View style={{ marginTop: 50, alignSelf: 'center' }}>
           <Image source={ require('../assets/imgs/logo.png')  } transition={1000} style={{ width: 150, height: 90 }} />
         </View>
-      </BarCodeScanner>
+      </CameraView>
       {!scanned &&
         <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
           <Text style={{ color: "white" }}>SCANEAR DE NUEVO</Text>
