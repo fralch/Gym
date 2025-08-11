@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, View, StyleSheet, Animated } from 'react-native';
+import { Text, View, StyleSheet, Animated, Image } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
 
@@ -39,6 +39,15 @@ export default function QRCodeScanner({ scanned, onBarCodeScanned }) {
       style={StyleSheet.absoluteFillObject}
     >
       <View style={styles.overlay}>
+        {/* Logo at the top */}
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('../../Images/Majanayim.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+
         {/* Main scanning area */}
         <View style={styles.scanningArea}>
           <View style={styles.scanFrame}>
@@ -78,6 +87,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.scannerOverlay,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  
+  logoContainer: {
+    position: 'absolute',
+    top: 80,
+    alignSelf: 'center',
+    zIndex: 10,
+  },
+  
+  logo: {
+    width: 160,
+    height: 120,
   },
   
   scanningArea: {
