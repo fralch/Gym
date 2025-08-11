@@ -12,7 +12,6 @@ export default function QrScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [flashOn, setFlashOn] = useState(false);
 
   useEffect(() => {
     getCameraPermissions();
@@ -48,9 +47,6 @@ export default function QrScreen() {
     setModalVisible(!isModalVisible);
   };
 
-  const handleFlashToggle = () => {
-    setFlashOn(!flashOn);
-  };
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -77,8 +73,6 @@ export default function QrScreen() {
       <QRCodeScanner
         scanned={scanned}
         onBarCodeScanned={handleBarCodeScanned}
-        flashOn={flashOn}
-        onFlashToggle={handleFlashToggle}
       />
       
       <UserInfoModal

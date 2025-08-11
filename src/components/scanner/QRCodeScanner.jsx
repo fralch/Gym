@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { Text, View, StyleSheet, Animated } from 'react-native';
 import { CameraView } from 'expo-camera';
-import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
 
-export default function QRCodeScanner({ scanned, onBarCodeScanned, flashOn, onFlashToggle }) {
+export default function QRCodeScanner({ scanned, onBarCodeScanned }) {
   const [scanAnimation] = useState(new Animated.Value(0));
 
   React.useEffect(() => {
@@ -37,24 +36,9 @@ export default function QRCodeScanner({ scanned, onBarCodeScanned, flashOn, onFl
       barcodeScannerSettings={{
         barcodeTypes: ["qr", "pdf417"],
       }}
-      flash={flashOn ? 'on' : 'off'}
       style={StyleSheet.absoluteFillObject}
     >
       <View style={styles.overlay}>
-        {/* Header with flash toggle */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.flashButton}
-            onPress={onFlashToggle}
-          >
-            <MaterialIcons 
-              name={flashOn ? 'flash-on' : 'flash-off'} 
-              size={28} 
-              color={flashOn ? COLORS.warning : COLORS.textPrimary} 
-            />
-          </TouchableOpacity>
-        </View>
-
         {/* Main scanning area */}
         <View style={styles.scanningArea}>
           <View style={styles.scanFrame}>
@@ -83,9 +67,6 @@ export default function QRCodeScanner({ scanned, onBarCodeScanned, flashOn, onFl
             El código se escaneará automáticamente
           </Text>
         </View>
-
-        {/* Bottom spacer */}
-        <View style={styles.bottomSpacer} />
       </View>
     </CameraView>
   );
@@ -95,29 +76,11 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: COLORS.scannerOverlay,
-  },
-  
-  header: {
-    flex: 0.15,
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    paddingRight: SPACING.containerPadding,
-    paddingBottom: SPACING.md,
-  },
-  
-  flashButton: {
-    backgroundColor: COLORS.scannerBackground,
-    padding: SPACING.md,
-    borderRadius: SPACING.largeBorderRadius,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   
   scanningArea: {
-    flex: 0.7,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -201,9 +164,5 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
-  },
-  
-  bottomSpacer: {
-    flex: 0.15,
   },
 });
