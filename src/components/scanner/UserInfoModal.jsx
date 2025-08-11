@@ -1,20 +1,17 @@
 import React from 'react';
-import { 
-  Text, 
-  View, 
-  StyleSheet, 
-  Modal, 
-  Dimensions, 
+import {
+  Text,
+  View,
+  StyleSheet,
+  Modal,
   ScrollView,
-  StatusBar 
+  StatusBar
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
-import { Button, Card } from '../ui';
+import { Card } from '../ui';
 import SocialLinks from './SocialLinks';
-
-const { height: screenHeight } = Dimensions.get('window');
 
 export default function UserInfoModal({ isVisible, onClose, onScanned }) {
   const handleClose = () => {
@@ -43,31 +40,30 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
   };
 
   return (
-    <Modal 
-      visible={isVisible} 
-      animationType="slide" 
+    <Modal
+      visible={isVisible}
+      animationType="slide"
       presentationStyle="pageSheet"
     >
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <View style={styles.container}>
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Información del Usuario</Text>
-            <MaterialIcons name="person" size={24} color={COLORS.accent} />
           </View>
 
           {/* Profile Card */}
           <Card style={styles.profileCard}>
-            <Image 
-              source={require('../../../assets/imgs/user.jpg')} 
+            <Image
+              source={require('../../../assets/imgs/user.jpg')}
               style={styles.profileImage}
               transition={500}
             />
-            
+
             <View style={styles.nameContainer}>
               <Text style={styles.userName}>{userInfo.name}</Text>
               <View style={styles.statusBadge}>
@@ -84,19 +80,19 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
               label="DNI"
               value={userInfo.dni}
             />
-            
+
             <InfoCard
               icon="event"
               label="Fecha de Inicio"
               value={userInfo.startDate}
             />
-            
+
             <InfoCard
               icon="event-available"
               label="Fecha de Fin"
               value={userInfo.endDate}
             />
-            
+
             <InfoCard
               icon="schedule"
               label="Tiempo Restante"
@@ -107,21 +103,7 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
             />
           </View>
 
-          {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Escanear Nuevo QR"
-              variant="outline"
-              onPress={handleClose}
-              style={styles.secondaryButton}
-            />
-            <Button
-              title="Cerrar"
-              variant="primary"
-              onPress={onClose}
-              style={styles.primaryButton}
-            />
-          </View>
+
         </ScrollView>
 
         <SocialLinks />
@@ -156,12 +138,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  
+
   scrollContent: {
     flexGrow: 1,
     paddingBottom: SPACING.xl,
   },
-  
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -169,19 +151,19 @@ const styles = StyleSheet.create({
     padding: SPACING.containerPadding,
     paddingTop: SPACING.xl,
   },
-  
+
   headerTitle: {
     fontSize: TYPOGRAPHY.fontSize.xl,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.textPrimary,
   },
-  
+
   profileCard: {
     alignItems: 'center',
     marginHorizontal: SPACING.containerPadding,
     marginBottom: SPACING.lg,
   },
-  
+
   profileImage: {
     width: 120,
     height: 120,
@@ -190,11 +172,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.accent,
     marginBottom: SPACING.md,
   },
-  
+
   nameContainer: {
     alignItems: 'center',
   },
-  
+
   userName: {
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semiBold,
@@ -202,7 +184,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: SPACING.sm,
   },
-  
+
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -211,28 +193,28 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs,
     borderRadius: SPACING.largeBorderRadius,
   },
-  
+
   statusText: {
     color: COLORS.success,
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     marginLeft: SPACING.xs,
   },
-  
+
   infoContainer: {
     paddingHorizontal: SPACING.containerPadding,
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
-  
+
   infoCard: {
     marginBottom: SPACING.md,
   },
-  
+
   infoCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
+
   infoIconContainer: {
     width: 40,
     height: 40,
@@ -242,47 +224,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: SPACING.md,
   },
-  
+
   infoTextContainer: {
     flex: 1,
   },
-  
+
   infoLabel: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textSecondary,
     marginBottom: SPACING.xs,
   },
-  
+
   infoValueContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  
+
   infoValue: {
     fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.textPrimary,
     flex: 1,
   },
-  
+
   infoBadge: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginLeft: SPACING.sm,
-  },
-  
-  buttonContainer: {
-    paddingHorizontal: SPACING.containerPadding,
-    gap: SPACING.md,
-  },
-  
-  primaryButton: {
-    backgroundColor: COLORS.accent,
-  },
-  
-  secondaryButton: {
-    borderColor: COLORS.accent,
   },
 });
