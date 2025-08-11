@@ -6,7 +6,7 @@ import {
   Modal,
   ScrollView,
   StatusBar,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -52,13 +52,11 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingTop: 15 }]}>
             <TouchableOpacity style={styles.headerButton}>
               <MaterialIcons name="menu" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton}>
-              <Text style={styles.editText}>Edit</Text>
-            </TouchableOpacity>
+           
           </View>
 
           {/* Profile Section with Blue Background */}
@@ -66,7 +64,7 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
             <View style={styles.blueBackground}>
               <View style={styles.profileImageContainer}>
                 <Image
-                 source={require('../../../assets/imgs/user.jpg')}
+                  source={require('../../../assets/imgs/user.jpg')}
                   style={styles.profileImage}
                   transition={500}
                 />
@@ -119,16 +117,23 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
               badgeColor={getStatusColor(userInfo.remainingDays)}
             />
           </View>
-
-          {/* Logout */}
-          <View style={styles.logoutContainer}>
-            <TouchableOpacity style={styles.logoutButton}>
-              <MaterialIcons name="logout" size={20} color="#666" />
-              <Text style={styles.logoutText}>Logout</Text>
-            </TouchableOpacity>
-          </View>
-
         </ScrollView>
+
+        {/* Bottom Navigation Bar */}
+        <View style={styles.bottomNavigationBar}>
+          <TouchableOpacity style={styles.bottomNavigationButton}>
+            <MaterialIcons name="home" size={24} color="#666" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bottomNavigationButton}>
+            <MaterialIcons name="search" size={24} color="#666" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bottomNavigationButton}>
+            <MaterialIcons name="person" size={24} color="#666" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bottomNavigationButton}>
+            <MaterialIcons name="settings" size={24} color="#666" />
+          </TouchableOpacity>
+        </View>
       </View>
     </Modal>
   );
@@ -330,5 +335,19 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 16,
     marginLeft: 8,
+  },
+
+  bottomNavigationBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    height: 60,
+  },
+
+  bottomNavigationButton: {
+    padding: 10,
   },
 });
