@@ -11,6 +11,7 @@ export default function App() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [flashOn, setFlashOn] = useState(false);
 
   useEffect(() => {
     const getCameraPermissions = async () => {
@@ -47,17 +48,30 @@ export default function App() {
         barcodeScannerSettings={{
           barcodeTypes: ["qr", "pdf417"],
         }}
+        flash={flashOn ? 'on' : 'off'}
         style={StyleSheet.absoluteFillObject}>
-        <View style={{ marginTop: 50, alignSelf: 'center' }}>
-          <Image source={ require('../assets/imgs/logo.png')  } transition={1000} style={{ width: 150, height: 90 }} />
+        
+        <View style={styles.overlay}>
+          <View style={styles.scanArea}>
+            <View style={styles.corner} />
+            <View style={[styles.corner, styles.topRight]} />
+            <View style={[styles.corner, styles.bottomLeft]} />
+            <View style={[styles.corner, styles.bottomRight]} />
+          </View>
+          
+          <Text style={styles.instructionText}>
+            Enfoca el código QR dentro del recuadro
+          </Text>
+          
+          <TouchableOpacity 
+            style={styles.flashButton} 
+            onPress={() => setFlashOn(!flashOn)}>
+            <Text style={styles.flashButtonText}>
+              {flashOn ? 'Apagar linterna' : 'Encender linterna'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </CameraView>
-      {!scanned &&
-        <TouchableOpacity style={styles.button} onPress={() => setScanned(false)}>
-          <Text style={{ color: "white" }}>SCANEAR DE NUEVO</Text>
-        </TouchableOpacity>
-
-      }
 
       <Modal visible={isModalVisible} animationType="slide">
         <View style={[styles.modalContainer, { height: screenHeight * 0.7 }]}>
@@ -116,6 +130,76 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     backgroundColor: "#34495E"
   },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  scanArea: {
+    width: 250,
+    height: 250,
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderColor: '#fff',
+    borderWidth: 3,
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+    borderRadius: 5,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    left: 'auto',
+    borderLeftWidth: 0,
+    borderRightWidth: 3,
+    borderBottomWidth: 0,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    top: 'auto',
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+    borderBottomWidth: 3,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    top: 'auto',
+    left: 'auto',
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+    borderRightWidth: 3,
+    borderBottomWidth: 3,
+  },
+  instructionText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 30,
+    paddingHorizontal: 20,
+  },
+  flashButton: {
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    marginTop: 50,
+  },
+  flashButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+  },
   button: {
     backgroundColor: '#3A4F64',
     padding: 10,
@@ -127,8 +211,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
-
-
   },
   modalContainer: {
     flex: 1,
@@ -147,7 +229,6 @@ const styles = StyleSheet.create({
   footer: {
     height: screenHeight * 0.1,
     backgroundColor: '#34495E',
-
     justifyContent: 'space-around',
     alignItems: 'center',
   },
