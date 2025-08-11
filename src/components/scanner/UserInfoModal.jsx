@@ -207,9 +207,9 @@ const styles = StyleSheet.create({
   },
 
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     borderWidth: 3,
     borderColor: 'white',
   },
