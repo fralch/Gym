@@ -1,7 +1,7 @@
 export const COLORS = {
   primary: '#444',
   secondary: '#444',
-  accent: '#3498DB',
+  accent: '#222',
   success: '#27AE60',
   warning: '#F39C12',
   error: '#E74C3C',
@@ -12,7 +12,7 @@ export const COLORS = {
   textMuted: '#95A5A6',
 
   // Background colors
-  background: '#1A252F',
+  background: '#222',
   surface: '#444',
   overlay: 'rgba(0, 0, 0, 0.6)',
 
