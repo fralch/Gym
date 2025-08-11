@@ -62,14 +62,6 @@ export default function App() {
           <Text style={styles.instructionText}>
             Enfoca el código QR dentro del recuadro
           </Text>
-          
-          <TouchableOpacity 
-            style={styles.flashButton} 
-            onPress={() => setFlashOn(!flashOn)}>
-            <Text style={styles.flashButtonText}>
-              {flashOn ? 'Apagar linterna' : 'Encender linterna'}
-            </Text>
-          </TouchableOpacity>
         </View>
       </CameraView>
 
@@ -134,7 +126,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
   scanArea: {
     width: 250,
@@ -187,18 +179,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 30,
     paddingHorizontal: 20,
-  },
-  flashButton: {
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-    marginTop: 50,
-  },
-  flashButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'center',
   },
   button: {
     backgroundColor: '#3A4F64',
