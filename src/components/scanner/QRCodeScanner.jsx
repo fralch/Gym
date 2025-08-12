@@ -70,7 +70,7 @@ export default function QRCodeScanner({ scanned, onBarCodeScanned }) {
             )}
           </View>
 
-          <Text style={styles.instructionText}>
+          <Text style={[styles.instructionText, { color: '#FFFFFF' }]}>
             Coloca el código QR dentro del marco
           </Text>
           
