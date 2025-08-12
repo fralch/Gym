@@ -12,7 +12,7 @@ export default function AppNavigator() {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-          statusBarStyle: 'light',
+          statusBarStyle: 'dark-content',
           statusBarBackgroundColor: COLORS.background,
           gestureEnabled: true,
         }}
