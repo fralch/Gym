@@ -5,97 +5,97 @@ import { Appearance } from 'react-native';
 const ThemeContext = createContext();
 
 export const lightTheme = {
-  primary: '#4A90E2',
-  secondary: '#E3F2FD',
-  accent: '#2196F3',
-  success: '#4CAF50',
-  warning: '#FF9800',
-  error: '#F44336',
+  primary: '#DC2626',
+  secondary: '#FEE2E2',
+  accent: '#EF4444',
+  success: '#16A34A',
+  warning: '#EA580C',
+  error: '#DC2626',
 
   // Text colors
-  textPrimary: '#212121',
-  textSecondary: '#757575',
-  textMuted: '#BDBDBD',
-  textInverse: '#FFFFFF',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  textInverse: '#F9FAFB',
 
   // Background colors
-  background: '#FFFFFF',
-  backgroundSecondary: '#F5F5F5',
-  surface: '#FFFFFF',
-  surfaceVariant: '#F8F9FA',
+  background: '#F3F4F6',
+  backgroundSecondary: '#E5E7EB',
+  surface: '#F9FAFB',
+  surfaceVariant: '#FFFFFF',
   overlay: 'rgba(0, 0, 0, 0.5)',
 
   // Button colors
-  buttonPrimary: '#4A90E2',
-  buttonSecondary: '#E0E0E0',
-  buttonSuccess: '#4CAF50',
-  buttonDanger: '#F44336',
+  buttonPrimary: '#DC2626',
+  buttonSecondary: '#D1D5DB',
+  buttonSuccess: '#16A34A',
+  buttonDanger: '#DC2626',
 
   // Border colors
-  border: '#E0E0E0',
-  borderLight: '#F0F0F0',
-  borderDark: '#BDBDBD',
+  border: '#D1D5DB',
+  borderLight: '#E5E7EB',
+  borderDark: '#9CA3AF',
 
   // QR Scanner specific
   scannerOverlay: 'rgba(0, 0, 0, 0.3)',
-  scannerCorner: '#4A90E2',
-  scannerBackground: 'rgba(255, 255, 255, 0.9)',
+  scannerCorner: '#DC2626',
+  scannerBackground: 'rgba(249, 250, 251, 0.9)',
 
   // Modal and card colors
-  modalBackground: '#FFFFFF',
+  modalBackground: '#F9FAFB',
   cardBackground: '#FFFFFF',
   cardShadow: 'rgba(0, 0, 0, 0.1)',
 
   // Status bar
   statusBarStyle: 'dark-content',
-  statusBarBackground: '#4A90E2',
+  statusBarBackground: '#DC2626',
 };
 
 export const darkTheme = {
-  primary: '#BB86FC',
-  secondary: '#3700B3',
-  accent: '#03DAC6',
-  success: '#4CAF50',
-  warning: '#FF9800',
-  error: '#CF6679',
+  primary: '#EF4444',
+  secondary: '#7F1D1D',
+  accent: '#F87171',
+  success: '#22C55E',
+  warning: '#F97316',
+  error: '#EF4444',
 
   // Text colors
-  textPrimary: '#FFFFFF',
-  textSecondary: '#B3B3B3',
-  textMuted: '#757575',
-  textInverse: '#000000',
+  textPrimary: '#F9FAFB',
+  textSecondary: '#eee',
+  textMuted: '#aaa',
+  textInverse: '#111',
 
   // Background colors
-  background: '#121212',
-  backgroundSecondary: '#1E1E1E',
-  surface: '#1E1E1E',
-  surfaceVariant: '#2C2C2C',
+  background: '#222',
+  backgroundSecondary: '#333',
+  surface: '#333',
+  surfaceVariant: '#444',
   overlay: 'rgba(0, 0, 0, 0.7)',
 
   // Button colors
-  buttonPrimary: '#BB86FC',
-  buttonSecondary: '#333333',
-  buttonSuccess: '#4CAF50',
-  buttonDanger: '#CF6679',
+  buttonPrimary: '#EF4444',
+  buttonSecondary: '#555',
+  buttonSuccess: '#22C55E',
+  buttonDanger: '#EF4444',
 
   // Border colors
-  border: '#333333',
-  borderLight: '#404040',
-  borderDark: '#666666',
+  border: '#555',
+  borderLight: '#555',
+  borderDark: '#444',
 
   // QR Scanner specific
   scannerOverlay: 'rgba(0, 0, 0, 0.5)',
-  scannerCorner: '#BB86FC',
-  scannerBackground: 'rgba(18, 18, 18, 0.9)',
+  scannerCorner: '#EF4444',
+  scannerBackground: 'rgba(43, 43, 43, 0.9)',
 
   // Modal and card colors
-  modalBackground: '#1E1E1E',
-  cardBackground: '#2C2C2C',
+  modalBackground: '#444',
+  cardBackground: '#555',
   cardShadow: 'rgba(0, 0, 0, 0.3)',
 
   // Status bar
   statusBarStyle: 'light-content',
-  statusBarBackground: '#BB86FC',
+  statusBarBackground: '#EF4444',
 };
 
 export function ThemeProvider({ children }) {

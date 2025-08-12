@@ -1,35 +1,35 @@
 // Legacy colors - use theme system instead
 export const COLORS = {
-  primary: '#4A90E2',
-  secondary: '#E3F2FD',
-  accent: '#2196F3',
-  success: '#4CAF50',
-  warning: '#FF9800',
-  error: '#F44336',
+  primary: '#DC2626',
+  secondary: '#FEE2E2',
+  accent: '#EF4444',
+  success: '#16A34A',
+  warning: '#EA580C',
+  error: '#DC2626',
 
   // Text colors
-  textPrimary: '#212121',
-  textSecondary: '#757575',
-  textMuted: '#BDBDBD',
+  textPrimary: '#1F2937',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
 
   // Background colors
-  background: '#FFFFFF',
-  surface: '#FFFFFF',
+  background: '#F3F4F6',
+  surface: '#F9FAFB',
   overlay: 'rgba(0, 0, 0, 0.5)',
 
   // Button colors
-  buttonPrimary: '#4A90E2',
-  buttonSecondary: '#E0E0E0',
-  buttonSuccess: '#4CAF50',
+  buttonPrimary: '#DC2626',
+  buttonSecondary: '#D1D5DB',
+  buttonSuccess: '#16A34A',
 
   // Border colors
-  border: '#E0E0E0',
-  borderLight: '#F0F0F0',
+  border: '#D1D5DB',
+  borderLight: '#E5E7EB',
 
   // QR Scanner specific
   scannerOverlay: 'rgba(0, 0, 0, 0.3)',
-  scannerCorner: '#4A90E2',
-  scannerBackground: 'rgba(255, 255, 255, 0.9)',
+  scannerCorner: '#DC2626',
+  scannerBackground: 'rgba(249, 250, 251, 0.9)',
 };
 
 // Theme-aware color getter (for backward compatibility)
