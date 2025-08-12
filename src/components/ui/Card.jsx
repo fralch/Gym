@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { COLORS, SPACING } from '../../constants';
+import { SPACING } from '../../constants';
+import { useThemedStyles } from '../../hooks/useTheme';
 
 export default function Card({ 
   children, 
@@ -10,6 +11,8 @@ export default function Card({
   elevation = 2,
   ...props 
 }) {
+  const styles = useThemedStyles(createStyles);
+  
   const cardStyles = [
     styles.card,
     { 
@@ -28,11 +31,11 @@ export default function Card({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   card: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.cardBackground,
     borderRadius: SPACING.borderRadius,
-    shadowColor: '#000',
+    shadowColor: theme.cardShadow,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
   },

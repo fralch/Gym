@@ -10,10 +10,14 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
+import { SPACING, TYPOGRAPHY } from '../../constants';
+import { useThemedStyles, useTheme } from '../../hooks/useTheme';
 import SocialLinks from './SocialLinks';
 
 export default function UserInfoModal({ isVisible, onClose, onScanned }) {
+  const { theme, toggleTheme, isDarkMode } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  
   const handleClose = () => {
     onScanned(false);
     onClose();
@@ -28,9 +32,9 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
   };
 
   const getStatusColor = (days) => {
-    if (days > 60) return COLORS.success;
-    if (days > 30) return COLORS.warning;
-    return COLORS.error;
+    if (days > 60) return theme.success;
+    if (days > 30) return theme.warning;
+    return theme.error;
   };
 
   const getDaysText = (days) => {
@@ -45,7 +49,7 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <StatusBar barStyle="light-content" backgroundColor="#e24a4a" />
+      <StatusBar barStyle={theme.statusBarStyle} backgroundColor={theme.statusBarBackground} />
       <View style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -54,9 +58,15 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
           {/* Header */}
           <View style={[styles.header, { paddingTop: 15 }]}>
             <TouchableOpacity style={styles.headerButton}>
-              <MaterialIcons name="menu" size={24} color="white" />
+              <MaterialIcons name="menu" size={24} color={theme.textInverse} />
             </TouchableOpacity>
-           
+            <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
+              <MaterialIcons 
+                name={isDarkMode ? "light-mode" : "dark-mode"} 
+                size={24} 
+                color={theme.textInverse} 
+              />
+            </TouchableOpacity>
           </View>
 
           {/* Profile Section with Blue Background */}
@@ -140,16 +150,19 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
 }
 
 function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  
   return (
     <TouchableOpacity style={styles.menuItem}>
       <View style={styles.menuItemLeft}>
         <View style={styles.menuIconContainer}>
-          <MaterialIcons name={icon} size={20} color="#e24a4a" />
+          <MaterialIcons name={icon} size={20} color={theme.primary} />
         </View>
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
       <View style={styles.menuItemRight}>
-        <Text style={[styles.menuValue, { color: valueColor || '#333' }]}>
+        <Text style={[styles.menuValue, { color: valueColor || theme.textPrimary }]}>
           {value}
         </Text>
         {showBadge && (
@@ -160,10 +173,10 @@ function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: theme.background,
   },
 
   scrollContent: {
@@ -177,7 +190,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 20,
-    backgroundColor: '#e24a4a',
+    backgroundColor: theme.primary,
   },
 
   headerButton: {
@@ -185,7 +198,7 @@ const styles = StyleSheet.create({
   },
 
   editText: {
-    color: 'white',
+    color: theme.textInverse,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -196,7 +209,7 @@ const styles = StyleSheet.create({
   },
 
   blueBackground: {
-    backgroundColor: '#e24a4a',
+    backgroundColor: theme.primary,
     width: '100%',
     height: 120,
     borderBottomLeftRadius: 50,
@@ -216,21 +229,21 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 3,
-    borderColor: 'white',
+    borderColor: theme.textInverse,
   },
 
   checkBadge: {
     position: 'absolute',
     bottom: 5,
     right: 5,
-    backgroundColor: '#4CAF50',
+    backgroundColor: theme.success,
     width: 24,
     height: 24,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: theme.textInverse,
   },
 
   userInfoSection: {
@@ -242,25 +255,25 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: theme.textPrimary,
     marginBottom: 5,
     textAlign: 'center',
   },
 
   userDni: {
     fontSize: 14,
-    color: '#666',
+    color: theme.textSecondary,
     marginBottom: 3,
   },
 
   userStatus: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: theme.success,
     fontWeight: '500',
   },
 
   menuContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.surface,
     marginHorizontal: 20,
     borderRadius: 12,
     paddingVertical: 10,
@@ -273,7 +286,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: theme.border,
   },
 
   menuItemLeft: {
@@ -285,7 +298,7 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     borderRadius: 8,
-    backgroundColor: '#fde3e3',
+    backgroundColor: theme.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -293,7 +306,7 @@ const styles = StyleSheet.create({
 
   menuLabel: {
     fontSize: 16,
-    color: '#333',
+    color: theme.textPrimary,
     fontWeight: '500',
   },
 
@@ -302,8 +315,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  menuValue: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    marginRight: 10,
+  },
+
+  statusBadge: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+
   messageBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: theme.success,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -313,7 +338,7 @@ const styles = StyleSheet.create({
   },
 
   badgeText: {
-    color: 'white',
+    color: theme.textInverse,
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -332,7 +357,7 @@ const styles = StyleSheet.create({
   },
 
   logoutText: {
-    color: '#666',
+    color: theme.textSecondary,
     fontSize: 16,
     marginLeft: 8,
   },
@@ -341,9 +366,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: theme.surface,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: theme.border,
     height: 60,
   },
 

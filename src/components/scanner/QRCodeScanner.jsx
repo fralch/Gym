@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Text, View, StyleSheet, Animated, Image } from 'react-native';
 import { CameraView } from 'expo-camera';
-import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
+import { SPACING, TYPOGRAPHY } from '../../constants';
+import { useThemedStyles } from '../../hooks/useTheme';
 
 export default function QRCodeScanner({ scanned, onBarCodeScanned }) {
   const [scanAnimation] = useState(new Animated.Value(0));
+  const styles = useThemedStyles(createStyles);
 
   React.useEffect(() => {
     if (!scanned) {
@@ -81,10 +83,10 @@ export default function QRCodeScanner({ scanned, onBarCodeScanned }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: COLORS.scannerOverlay,
+    backgroundColor: theme.scannerOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -117,7 +119,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 30,
     height: 30,
-    borderColor: COLORS.scannerCorner,
+    borderColor: theme.scannerCorner,
     borderWidth: 4,
     borderRadius: SPACING.smallBorderRadius,
   },
@@ -155,9 +157,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 2,
-    backgroundColor: COLORS.scannerCorner,
+    backgroundColor: theme.scannerCorner,
     top: '50%',
-    shadowColor: COLORS.scannerCorner,
+    shadowColor: theme.scannerCorner,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
@@ -165,7 +167,7 @@ const styles = StyleSheet.create({
   },
   
   instructionText: {
-    color: COLORS.textPrimary,
+    color: theme.textInverse,
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semiBold,
     textAlign: 'center',
@@ -177,7 +179,7 @@ const styles = StyleSheet.create({
   },
   
   subText: {
-    color: COLORS.textSecondary,
+    color: theme.textSecondary,
     fontSize: TYPOGRAPHY.fontSize.md,
     textAlign: 'center',
     marginTop: SPACING.md,

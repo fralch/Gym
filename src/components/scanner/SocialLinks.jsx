@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity, Linking, Text, StyleSheet } from 'react-native';
 import { Foundation, FontAwesome5 } from '@expo/vector-icons';
-import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
+import { SPACING, TYPOGRAPHY } from '../../constants';
+import { useThemedStyles } from '../../hooks/useTheme';
 
 const socialLinks = [
   {
@@ -28,6 +29,8 @@ const socialLinks = [
 ];
 
 export default function SocialLinks() {
+  const styles = useThemedStyles(createStyles);
+  
   const handlePress = (url) => {
     Linking.canOpenURL(url).then(supported => {
       if (supported) {
@@ -65,18 +68,18 @@ export default function SocialLinks() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   container: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.containerPadding,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: theme.border,
     alignItems: 'center',
   },
   
   authorText: {
-    color: COLORS.textSecondary,
+    color: theme.textSecondary,
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     marginBottom: SPACING.md,
@@ -94,18 +97,18 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: theme.cardShadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
   
   versionText: {
-    color: COLORS.textMuted,
+    color: theme.textMuted,
     fontSize: TYPOGRAPHY.fontSize.xs,
     fontWeight: TYPOGRAPHY.fontWeight.regular,
   },

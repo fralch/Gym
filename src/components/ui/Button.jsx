@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
+import { SPACING, TYPOGRAPHY } from '../../constants';
+import { useThemedStyles, useTheme } from '../../hooks/useTheme';
 
 export default function Button({
   title,
@@ -13,6 +14,9 @@ export default function Button({
   textStyle,
   ...props
 }) {
+  const { theme } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  
   const buttonStyles = [
     styles.button,
     styles[variant],
@@ -29,6 +33,18 @@ export default function Button({
     textStyle,
   ];
 
+  const getLoadingColor = () => {
+    switch (variant) {
+      case 'primary':
+      case 'success':
+        return theme.textInverse;
+      case 'outline':
+        return theme.accent;
+      default:
+        return theme.textPrimary;
+    }
+  };
+
   return (
     <TouchableOpacity
       style={buttonStyles}
@@ -39,7 +55,7 @@ export default function Button({
     >
       {loading ? (
         <ActivityIndicator 
-          color={variant === 'primary' ? COLORS.textPrimary : COLORS.accent} 
+          color={getLoadingColor()} 
           size="small" 
         />
       ) : (
@@ -49,14 +65,14 @@ export default function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme) => StyleSheet.create({
   button: {
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: SPACING.borderRadius,
     paddingHorizontal: SPACING.lg,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: theme.cardShadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -64,20 +80,20 @@ const styles = StyleSheet.create({
   
   // Variants
   primary: {
-    backgroundColor: COLORS.buttonPrimary,
+    backgroundColor: theme.buttonPrimary,
   },
   secondary: {
-    backgroundColor: COLORS.buttonSecondary,
+    backgroundColor: theme.buttonSecondary,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
   },
   success: {
-    backgroundColor: COLORS.buttonSuccess,
+    backgroundColor: theme.buttonSuccess,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: COLORS.accent,
+    borderColor: theme.accent,
   },
   
   // Sizes
@@ -86,7 +102,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   medium: {
-    height: SPACING.buttonHeight,
+    height: SPACING.buttonHeight || 48,
   },
   large: {
     height: 56,
@@ -106,19 +122,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   primaryText: {
-    color: COLORS.textPrimary,
+    color: theme.textInverse,
     fontSize: TYPOGRAPHY.fontSize.md,
   },
   secondaryText: {
-    color: COLORS.textSecondary,
+    color: theme.textPrimary,
     fontSize: TYPOGRAPHY.fontSize.md,
   },
   successText: {
-    color: COLORS.textPrimary,
+    color: theme.textInverse,
     fontSize: TYPOGRAPHY.fontSize.md,
   },
   outlineText: {
-    color: COLORS.accent,
+    color: theme.accent,
     fontSize: TYPOGRAPHY.fontSize.md,
   },
   smallText: {
