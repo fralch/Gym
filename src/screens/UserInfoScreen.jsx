@@ -1,27 +1,26 @@
 import React from 'react';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
   View,
   StyleSheet,
-  Modal,
   ScrollView,
   StatusBar,
   TouchableOpacity,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
-import { SPACING, TYPOGRAPHY } from '../../constants';
-import { useThemedStyles, useTheme } from '../../hooks/useTheme';
-import SocialLinks from './SocialLinks';
+import { SPACING, TYPOGRAPHY } from '../constants';
+import { useThemedStyles, useTheme } from '../hooks/useTheme';
+import { useNavigation } from '@react-navigation/native';
 
-export default function UserInfoModal({ isVisible, onClose, onScanned }) {
+export default function UserInfoScreen({ route }) {
   const { theme, toggleTheme, isDarkMode } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const navigation = useNavigation();
   
-  const handleClose = () => {
-    onScanned(false);
-    onClose();
-  };
+  const { qrData } = route.params || {};
 
   const userInfo = {
     name: 'Alexander Frank Cairampoma',
@@ -29,6 +28,7 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
     startDate: '19-09-2022',
     endDate: '19-09-2023',
     remainingDays: 298,
+    qrData: qrData || 'No data scanned',
   };
 
   const getStatusColor = (days) => {
@@ -43,109 +43,102 @@ export default function UserInfoModal({ isVisible, onClose, onScanned }) {
     return `${days} día${days !== 1 ? 's' : ''} restante${days !== 1 ? 's' : ''}`;
   };
 
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
+
   return (
-    <Modal
-      visible={isVisible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-    >
+    <View style={styles.container}>
       <StatusBar barStyle={theme.statusBarStyle} backgroundColor={theme.statusBarBackground} />
-      <View style={styles.container}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={[styles.header, { paddingTop: 15 }]}>
-            <TouchableOpacity style={styles.headerButton}>
-              <MaterialIcons name="menu" size={24} color={theme.textInverse} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
-              <MaterialIcons 
-                name={isDarkMode ? "light-mode" : "dark-mode"} 
-                size={24} 
-                color={theme.textInverse} 
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Profile Section with Blue Background */}
-          <View style={styles.profileSection}>
-            <View style={styles.blueBackground}>
-              <View style={styles.profileImageContainer}>
-                <Image
-                  source={require('../../../assets/imgs/user.jpg')}
-                  style={styles.profileImage}
-                  transition={500}
-                />
-                <View style={styles.checkBadge}>
-                  <MaterialIcons name="check" size={16} color="white" />
-                </View>
-              </View>
-            </View>
-            
-            <View style={styles.userInfoSection}>
-              <Text style={styles.userName}>{userInfo.name}</Text>
-              <Text style={styles.userDni}>DNI: {userInfo.dni}</Text>
-              <Text style={styles.userStatus}>Activo</Text>
-            </View>
-          </View>
-
-          {/* User Information */}
-          <View style={styles.menuContainer}>
-            <MenuItem
-              icon="check-circle"
-              label="Estado"
-              value="Activo"
-              valueColor="#4CAF50"
-            />
-
-            <MenuItem
-              icon="badge"
-              label="DNI"
-              value={userInfo.dni}
-            />
-
-            <MenuItem
-              icon="event"
-              label="Fecha de Inicio"
-              value={userInfo.startDate}
-            />
-
-            <MenuItem
-              icon="event-available"
-              label="Fecha de Fin"
-              value={userInfo.endDate}
-            />
-
-            <MenuItem
-              icon="schedule"
-              label="Tiempo Restante"
-              value={getDaysText(userInfo.remainingDays)}
-              valueColor={getStatusColor(userInfo.remainingDays)}
-              showBadge
-              badgeColor={getStatusColor(userInfo.remainingDays)}
-            />
-          </View>
-        </ScrollView>
-
-        {/* Bottom Navigation Bar */}
-        <View style={styles.bottomNavigationBar}>
-          <TouchableOpacity style={styles.bottomNavigationButton}>
-            <MaterialIcons name="home" size={24} color="#666" />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: 55 }]}>
+          <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
+            <MaterialIcons name="arrow-back" size={24} color={theme.textInverse} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.bottomNavigationButton}>
-            <MaterialIcons name="search" size={24} color="#666" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.bottomNavigationButton}>
-            <MaterialIcons name="person" size={24} color="#666" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.bottomNavigationButton}>
-            <MaterialIcons name="settings" size={24} color="#666" />
+          <Text style={styles.headerTitle}>Información del Usuario</Text>
+          <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
+            <MaterialIcons 
+              name={isDarkMode ? "light-mode" : "dark-mode"} 
+              size={24} 
+              color={theme.textInverse} 
+            />
           </TouchableOpacity>
         </View>
-      </View>
-    </Modal>
+
+        {/* Profile Section with Blue Background */}
+        <View style={styles.profileSection}>
+          <View style={styles.blueBackground}>
+            <View style={styles.profileImageContainer}>
+              <Image
+                source={require('../../assets/imgs/user.jpg')}
+                style={styles.profileImage}
+                transition={500}
+              />
+              <View style={styles.checkBadge}>
+                <MaterialIcons name="check" size={16} color="white" />
+              </View>
+            </View>
+          </View>
+          
+          <View style={styles.userInfoSection}>
+            <Text style={styles.userName}>{userInfo.name}</Text>
+            <Text style={styles.userDni}>DNI: {userInfo.dni}</Text>
+            <Text style={styles.userStatus}>Activo</Text>
+          </View>
+        </View>
+
+        {/* User Information */}
+        <View style={styles.menuContainer}>
+          <MenuItem
+            icon="check-circle"
+            label="Estado"
+            value="Activo"
+            valueColor="#4CAF50"
+          />
+
+          <MenuItem
+            icon="badge"
+            label="DNI"
+            value={userInfo.dni}
+          />
+
+          <MenuItem
+            icon="event"
+            label="Fecha de Inicio"
+            value={userInfo.startDate}
+          />
+
+          <MenuItem
+            icon="event-available"
+            label="Fecha de Fin"
+            value={userInfo.endDate}
+          />
+
+          <MenuItem
+            icon="schedule"
+            label="Tiempo Restante"
+            value={getDaysText(userInfo.remainingDays)}
+            valueColor={getStatusColor(userInfo.remainingDays)}
+            showBadge
+            badgeColor={getStatusColor(userInfo.remainingDays)}
+          />
+
+         
+        </View>
+
+        {/* Action Button */}
+        <View style={styles.actionContainer}>
+          <TouchableOpacity style={styles.scanAgainButton} onPress={handleBackPress}>
+            <MaterialIcons name="qr-code-scanner" size={24} color={theme.textInverse} />
+            <Text style={styles.scanAgainText}>Escanear Nuevo Código</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -197,10 +190,10 @@ const createStyles = (theme) => StyleSheet.create({
     padding: 5,
   },
 
-  editText: {
+  headerTitle: {
     color: theme.textInverse,
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
   },
 
   profileSection: {
@@ -292,6 +285,7 @@ const createStyles = (theme) => StyleSheet.create({
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
 
   menuIconContainer: {
@@ -308,17 +302,22 @@ const createStyles = (theme) => StyleSheet.create({
     fontSize: 16,
     color: theme.textPrimary,
     fontWeight: '500',
+    flex: 1,
   },
 
   menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'flex-end',
   },
 
   menuValue: {
     fontSize: 14,
     color: theme.textSecondary,
     marginRight: 10,
+    textAlign: 'right',
+    flexShrink: 1,
   },
 
   statusBadge: {
@@ -327,52 +326,30 @@ const createStyles = (theme) => StyleSheet.create({
     borderRadius: 4,
   },
 
-  messageBadge: {
-    backgroundColor: theme.success,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-
-  badgeText: {
-    color: theme.textInverse,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-
-  logoutContainer: {
+  actionContainer: {
     alignItems: 'center',
     marginTop: 30,
     marginBottom: 30,
   },
 
-  logoutButton: {
+  scanAgainButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    backgroundColor: theme.primary,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 
-  logoutText: {
-    color: theme.textSecondary,
-    fontSize: 16,
-    marginLeft: 8,
-  },
-
-  bottomNavigationBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: theme.surface,
-    borderTopWidth: 1,
-    borderTopColor: theme.border,
-    height: 60,
-  },
-
-  bottomNavigationButton: {
-    padding: 10,
+  scanAgainText: {
+    color: theme.textInverse,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    marginLeft: 10,
   },
 });

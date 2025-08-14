@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, StatusBar, Alert } from 'react-native';
 import { Camera } from 'expo-camera';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '../constants';
 import { 
   PermissionsRequest, 
-  QRCodeScanner, 
-  UserInfoModal 
+  QRCodeScanner
 } from '../components/scanner';
 
 export default function QrScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [isModalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     getCameraPermissions();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setScanned(false);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const getCameraPermissions = async () => {
     try {
@@ -36,24 +44,8 @@ export default function QrScreen() {
     // Log scan data for debugging
     console.log(`QR Code scanned: ${type} - ${data}`);
     
-    // Show user info modal
-    toggleModal();
-    
-    // Optionally show a brief success feedback
-    // You could add haptic feedback here if desired
-  };
-
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
-
-
-  const handleModalClose = () => {
-    setModalVisible(false);
-  };
-
-  const handleScanAgain = (shouldScan) => {
-    setScanned(!shouldScan);
+    // Navigate to UserInfo screen with scanned data
+    navigation.navigate('UserInfo', { qrData: data });
   };
 
   // Show permissions screen if needed
@@ -73,12 +65,6 @@ export default function QrScreen() {
       <QRCodeScanner
         scanned={scanned}
         onBarCodeScanned={handleBarCodeScanned}
-      />
-      
-      <UserInfoModal
-        isVisible={isModalVisible}
-        onClose={handleModalClose}
-        onScanned={handleScanAgain}
       />
     </View>
   );
