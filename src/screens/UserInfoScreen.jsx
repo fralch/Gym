@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -49,12 +49,18 @@ export default function UserInfoScreen({ route }) {
 
   const insets = useSafeAreaInsets();
 
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      StatusBar.setBarStyle('light-content', true);
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar 
         barStyle="light-content" 
-        backgroundColor={theme.primary}
-        translucent={true}
+        backgroundColor={Platform.OS === 'android' ? theme.primary : 'transparent'}
+        translucent={Platform.OS === 'android'}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContent}

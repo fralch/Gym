@@ -13,9 +13,8 @@ export default function AppNavigator() {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-          statusBarStyle: 'dark-content',
-          statusBarBackgroundColor: COLORS.background,
           gestureEnabled: true,
+          animation: 'slide_from_right',
         }}
       >
         <Stack.Screen 
