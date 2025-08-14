@@ -47,24 +47,30 @@ export default function UserInfoScreen({ route }) {
     navigation.goBack();
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={theme.statusBarStyle} backgroundColor={theme.statusBarBackground} />
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor={theme.primary}
+        translucent={true}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={[styles.header, { paddingTop: 55 }]}>
+        <View style={[styles.header, { paddingTop: insets.top + 15 }]}>
           <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
-            <MaterialIcons name="arrow-back" size={24} color={theme.textInverse} />
+            <MaterialIcons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Información del Usuario</Text>
+          <Text style={[styles.headerTitle, { color: 'white' }]}>Información del Usuario</Text>
           <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
             <MaterialIcons 
               name={isDarkMode ? "light-mode" : "dark-mode"} 
               size={24} 
-              color={theme.textInverse} 
+              color="white" 
             />
           </TouchableOpacity>
         </View>

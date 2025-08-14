@@ -52,7 +52,7 @@ export default function QrScreen() {
   if (hasPermission === null || hasPermission === false) {
     return (
       <>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+        <StatusBar barStyle="light-content" backgroundColor="black" />
         <PermissionsRequest hasPermission={hasPermission} />
       </>
     );
@@ -60,7 +60,7 @@ export default function QrScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="light-content" backgroundColor="black" />
       
       <QRCodeScanner
         scanned={scanned}
