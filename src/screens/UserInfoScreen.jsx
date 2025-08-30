@@ -47,6 +47,10 @@ export default function UserInfoScreen({ route }) {
     navigation.goBack();
   };
 
+  const handleStatsPress = () => {
+    navigation.navigate('Stats');
+  };
+
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -142,11 +146,15 @@ export default function UserInfoScreen({ route }) {
          
         </View>
 
-        {/* Action Button */}
+        {/* Action Buttons */}
         <View style={styles.actionContainer}>
           <TouchableOpacity style={styles.scanAgainButton} onPress={handleBackPress}>
             <MaterialIcons name="qr-code-scanner" size={24} color={theme.textInverse} />
             <Text style={styles.scanAgainText}>Escanear Nuevo Código</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.scanAgainButton, {marginTop: 15, backgroundColor: theme.success}]} onPress={handleStatsPress}>
+            <MaterialIcons name="bar-chart" size={24} color={theme.textInverse} />
+            <Text style={styles.scanAgainText}>Ver Estadísticas</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
