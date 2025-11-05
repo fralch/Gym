@@ -14,6 +14,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName="UserInfo"
         screenOptions={{
           headerShown: false,
           gestureEnabled: true,
