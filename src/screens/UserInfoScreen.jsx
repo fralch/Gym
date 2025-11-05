@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Platform, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
@@ -19,6 +19,7 @@ export default function UserInfoScreen({ route }) {
   const { theme, toggleTheme, isDarkMode } = useTheme();
   const styles = useThemedStyles(createStyles);
   const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   
   const { qrData } = route.params || {};
 
@@ -57,6 +58,12 @@ export default function UserInfoScreen({ route }) {
     if (Platform.OS === 'ios') {
       StatusBar.setBarStyle('light-content', true);
     }
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   return (
@@ -72,11 +79,23 @@ export default function UserInfoScreen({ route }) {
       >
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 15 }]}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleBackPress}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: 'white' }]}>Información del Usuario</Text>
-          <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={toggleTheme}
+            accessibilityRole="button"
+            accessibilityLabel={isDarkMode ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <MaterialIcons 
               name={isDarkMode ? "light-mode" : "dark-mode"} 
               size={24} 
@@ -86,14 +105,16 @@ export default function UserInfoScreen({ route }) {
         </View>
 
         {/* Profile Section with Blue Background */}
-        <View style={styles.profileSection}>
+        <Animated.View style={[styles.profileSection, { opacity: fadeAnim }]}>
           <View style={styles.blueBackground}>
             <View style={styles.profileImageContainer}>
-              <Image
-                source={require('../../assets/imgs/user.jpg')}
-                style={styles.profileImage}
-                transition={500}
-              />
+              <View style={styles.profileImageRing}>
+                <Image
+                  source={require('../../assets/imgs/user.jpg')}
+                  style={styles.profileImage}
+                  transition={500}
+                />
+              </View>
               <View style={styles.checkBadge}>
                 <MaterialIcons name="check" size={16} color="white" />
               </View>
@@ -103,9 +124,12 @@ export default function UserInfoScreen({ route }) {
           <View style={styles.userInfoSection}>
             <Text style={styles.userName}>{userInfo.name}</Text>
             <Text style={styles.userDni}>DNI: {userInfo.dni}</Text>
-            <Text style={styles.userStatus}>Activo</Text>
+            <View style={styles.userStatusPill}>
+              <MaterialIcons name="check-circle" size={16} color={theme.textInverse} />
+              <Text style={styles.userStatusText}>Activo</Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* User Information */}
         <View style={styles.menuContainer}>
@@ -113,7 +137,7 @@ export default function UserInfoScreen({ route }) {
             icon="check-circle"
             label="Estado"
             value="Activo"
-            valueColor="#4CAF50"
+            valueColor={theme.success}
           />
 
           <MenuItem
@@ -143,16 +167,25 @@ export default function UserInfoScreen({ route }) {
             badgeColor={getStatusColor(userInfo.remainingDays)}
           />
 
+          <MenuItem
+            icon="qr-code"
+            label="Último QR"
+            value={userInfo.qrData}
+            noBorder
+          />
+
          
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionContainer}>
-          <TouchableOpacity style={styles.scanAgainButton} onPress={handleBackPress}>
-            <MaterialIcons name="qr-code-scanner" size={24} color={theme.textInverse} />
-            <Text style={styles.scanAgainText}>Escanear Nuevo Código</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.scanAgainButton, {marginTop: 15, backgroundColor: theme.success}]} onPress={handleStatsPress}>
+         
+          <TouchableOpacity
+            style={[styles.scanAgainButton, { marginTop: 15, backgroundColor: theme.success }]}
+            onPress={handleStatsPress}
+            accessibilityRole="button"
+            accessibilityLabel="Ver estadísticas"
+          >
             <MaterialIcons name="bar-chart" size={24} color={theme.textInverse} />
             <Text style={styles.scanAgainText}>Ver Estadísticas</Text>
           </TouchableOpacity>
@@ -162,12 +195,18 @@ export default function UserInfoScreen({ route }) {
   );
 }
 
-function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
+const MenuItem = React.memo(function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor, noBorder }) {
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const a11yLabel = value ? `${label}: ${value}` : label;
   
   return (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity
+      style={[styles.menuItem, noBorder && { borderBottomWidth: 0 }]}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+    >
       <View style={styles.menuItemLeft}>
         <View style={styles.menuIconContainer}>
           <MaterialIcons name={icon} size={20} color={theme.primary} />
@@ -175,7 +214,11 @@ function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
       <View style={styles.menuItemRight}>
-        <Text style={[styles.menuValue, { color: valueColor || theme.textPrimary }]}>
+        <Text
+          style={[styles.menuValue, { color: valueColor || theme.textPrimary }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {value}
         </Text>
         {showBadge && (
@@ -184,7 +227,7 @@ function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const createStyles = (theme) => StyleSheet.create({
   container: {
@@ -204,6 +247,11 @@ const createStyles = (theme) => StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 20,
     backgroundColor: theme.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    ...Platform.select({ android: { elevation: 4 } }),
   },
 
   headerButton: {
@@ -214,6 +262,7 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.textInverse,
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    letterSpacing: 0.3,
   },
 
   profileSection: {
@@ -235,6 +284,21 @@ const createStyles = (theme) => StyleSheet.create({
   profileImageContainer: {
     position: 'relative',
     marginBottom: -40,
+  },
+
+  profileImageRing: {
+    width: 132,
+    height: 132,
+    borderRadius: 66,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.35)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    ...Platform.select({ android: { elevation: 4 } }),
   },
 
   profileImage: {
@@ -279,10 +343,21 @@ const createStyles = (theme) => StyleSheet.create({
     marginBottom: 3,
   },
 
-  userStatus: {
+  userStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.success,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginTop: 6,
+  },
+
+  userStatusText: {
     fontSize: 12,
-    color: theme.success,
-    fontWeight: '500',
+    color: theme.textInverse,
+    fontWeight: '600',
+    marginLeft: 6,
   },
 
   menuContainer: {
@@ -290,6 +365,11 @@ const createStyles = (theme) => StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 12,
     paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    ...Platform.select({ android: { elevation: 3 } }),
   },
 
   menuItem: {
@@ -364,6 +444,8 @@ const createStyles = (theme) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    minWidth: 250,
+    justifyContent: 'center',
   },
 
   scanAgainText: {
