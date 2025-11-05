@@ -1,11 +1,11 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, StatusBar, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { LineChart, PieChart } from 'react-native-chart-kit';
+import { LineChart } from 'react-native-chart-kit';
 import { useNavigation } from '@react-navigation/native';
-import { attendanceData, getMuscleFocusData } from '../data/mockData';
+import { attendanceData } from '../data/mockData';
 import { useTheme } from '../hooks/useTheme';
 import { useThemedStyles } from '../hooks/useTheme';
 import Card from '../components/ui/Card';
@@ -18,24 +18,40 @@ const chartConfig = (theme) => ({
   backgroundGradientFrom: theme.cardBackground,
   backgroundGradientTo: theme.cardBackground,
   decimalPlaces: 0,
-  color: (opacity = 1) => theme.textPrimary,
+  color: (opacity = 1) => `${theme.primary}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`,
   labelColor: (opacity = 1) => theme.textSecondary,
   style: {
     borderRadius: SPACING.borderRadius,
   },
   propsForDots: {
-    r: "6",
+    r: "5",
     strokeWidth: "2",
     stroke: theme.primary,
+    fill: theme.cardBackground,
   },
+  propsForBackgroundLines: {
+    strokeDasharray: "4",
+    stroke: theme.border,
+    strokeWidth: 1,
+  },
+  fillShadowGradient: theme.primary,
+  fillShadowGradientOpacity: 0.1,
 });
 
 const StatsScreen = () => {
   const { theme, toggleTheme, isDarkMode } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const muscleFocusData = getMuscleFocusData(theme);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const [tooltip, setTooltip] = useState(null);
+
+  const weeklyCount = useMemo(() => {
+    const data = attendanceData?.datasets?.[0]?.data || [];
+    return data.reduce((sum, v) => sum + (v || 0), 0);
+  }, [attendanceData]);
+
+  const weekLength = useMemo(() => attendanceData?.labels?.length || 0, [attendanceData]);
+  const weeklyPercent = useMemo(() => (weekLength ? Math.round((weeklyCount / weekLength) * 100) : 0), [weekLength, weeklyCount]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -60,11 +76,25 @@ const StatsScreen = () => {
       >
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 15 }]}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleBackPress}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.7}
+          >
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Estadísticas</Text>
-          <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={toggleTheme}
+            accessibilityRole="button"
+            accessibilityLabel={isDarkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            activeOpacity={0.7}
+          >
             <MaterialIcons 
               name={isDarkMode ? "light-mode" : "dark-mode"} 
               size={24} 
@@ -79,20 +109,20 @@ const StatsScreen = () => {
           <View style={styles.statsRow}>
             <Card style={styles.statCard}>
               <View style={styles.statIconContainer}>
-                <MaterialIcons name="fitness-center" size={28} color={theme.primary} />
+                <MaterialIcons name="fitness-center" size={24} color={theme.primary} />
               </View>
               <View style={styles.statContent}>
-                <Text style={styles.statNumber}>5</Text>
+                <Text style={styles.statNumber}>{weeklyCount}</Text>
                 <Text style={styles.statLabel}>Esta Semana</Text>
                 <Text style={styles.statChange}>+2 vs anterior</Text>
               </View>
             </Card>
             <Card style={styles.statCard}>
               <View style={styles.statIconContainer}>
-                <MaterialIcons name="trending-up" size={28} color={theme.success} />
+                <MaterialIcons name="trending-up" size={24} color={theme.success} />
               </View>
               <View style={styles.statContent}>
-                <Text style={styles.statNumber}>71%</Text>
+                <Text style={styles.statNumber}>{weeklyPercent}%</Text>
                 <Text style={styles.statLabel}>Asistencia</Text>
                 <Text style={[styles.statChange, { color: theme.success }]}>↗ 12% mejora</Text>
               </View>
@@ -101,7 +131,7 @@ const StatsScreen = () => {
           <View style={styles.statsRow}>
             <Card style={styles.statCard}>
               <View style={styles.statIconContainer}>
-                <MaterialIcons name="local-fire-department" size={28} color={theme.warning} />
+                <MaterialIcons name="local-fire-department" size={24} color={theme.warning} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statNumber}>12</Text>
@@ -111,7 +141,7 @@ const StatsScreen = () => {
             </Card>
             <Card style={styles.statCard}>
               <View style={styles.statIconContainer}>
-                <MaterialIcons name="timer" size={28} color={theme.accent || theme.secondary} />
+                <MaterialIcons name="timer" size={24} color={theme.accent || theme.secondary} />
               </View>
               <View style={styles.statContent}>
                 <Text style={styles.statNumber}>2.5h</Text>
@@ -128,79 +158,97 @@ const StatsScreen = () => {
           <Card style={styles.card}>
             <View style={styles.chartHeader}>
               <View style={styles.chartHeaderLeft}>
-                <MaterialIcons name="show-chart" size={24} color={theme.primary} />
+                <MaterialIcons name="show-chart" size={20} color={theme.primary} />
                 <View style={styles.chartHeaderText}>
                   <Text style={styles.chartTitle}>Progreso de Entrenamiento</Text>
-                  <Text style={styles.chartSubtitle}>Últimos 7 días • Sesiones completadas</Text>
+                  <Text style={styles.chartSubtitle}>Últimos {weekLength} días</Text>
                 </View>
               </View>
               <View style={styles.chartHeaderRight}>
-                <View style={styles.trendIndicator}>
-                  <MaterialIcons name="trending-up" size={16} color={theme.success} />
-                  <Text style={[styles.trendText, { color: theme.success }]}>+15%</Text>
+                <View style={styles.badge}>
+                  <MaterialIcons name="schedule" size={16} color={theme.primary} />
+                  <Text style={styles.badgeText}>{weeklyPercent}% semanal</Text>
                 </View>
               </View>
             </View>
-            <LineChart
-              data={attendanceData}
-              width={screenWidth - SPACING.lg * 4}
-              height={240}
-              yAxisLabel=""
-              yAxisSuffix=""
-              yAxisInterval={1}
-              fromZero={true}
-              segments={1}
-              chartConfig={{
-                backgroundColor: theme.cardBackground,
-                backgroundGradientFrom: theme.cardBackground,
-                backgroundGradientTo: theme.cardBackground,
-                decimalPlaces: 0,
-                color: (opacity = 1) => `${theme.primary}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`,
-                labelColor: (opacity = 1) => theme.textSecondary,
-                style: {
-                  borderRadius: SPACING.borderRadius,
-                },
-                propsForDots: {
-                  r: "5",
-                  strokeWidth: "3",
-                  stroke: theme.primary,
-                  fill: theme.cardBackground
-                },
-                propsForBackgroundLines: {
-                  strokeDasharray: "5,5",
-                  stroke: theme.borderLight,
-                  strokeWidth: 1,
-                },
-                fillShadowGradient: theme.primary,
-                fillShadowGradientOpacity: 0.1,
-              }}
-              bezier
-              style={styles.chart}
-              withDots={true}
-              withShadow={false}
-              withInnerLines={true}
-              withOuterLines={false}
-              withVerticalLines={true}
-              withHorizontalLines={true}
-            />
-          </Card>     
+            <View style={styles.chartContainer}>
+              <LineChart
+                data={attendanceData}
+                width={screenWidth - SPACING.lg * 2 - SPACING.md * 2}
+                height={220}
+                yAxisInterval={1}
+                fromZero={true}
+                chartConfig={chartConfig(theme)}
+                bezier
+                style={styles.chart}
+                formatYLabel={(v) => (v === '1' ? 'Sí' : 'No')}
+                onDataPointClick={({ value, x, y, index }) => {
+                  setTooltip({ value, x, y, index });
+                  setTimeout(() => setTooltip(null), 2000);
+                }}
+              />
+              {tooltip && (
+                <View
+                  style={[
+                    styles.chartTooltip,
+                    {
+                      left: Math.max(tooltip.x - 40, 8),
+                      top: Math.max(tooltip.y - 50, 8),
+                    },
+                  ]}
+                >
+                  <Text style={styles.chartTooltipTitle}>
+                    {attendanceData.labels?.[tooltip.index] || ''}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.chartTooltipValue,
+                      { color: tooltip.value === 1 ? theme.success : theme.error },
+                    ]}
+                  >
+                    {tooltip.value === 1 ? 'Asistió' : 'No asistió'}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </Card>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionContainer}>
-         
-          
+          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
           <View style={styles.secondaryActions}>
-            <TouchableOpacity style={styles.secondaryActionButton}>
-              <MaterialIcons name="calendar-today" size={20} color={theme.primary} />
+            <TouchableOpacity
+              style={styles.secondaryActionButton}
+              accessibilityRole="button"
+              accessibilityLabel="Ver historial"
+              activeOpacity={0.8}
+            >
+              <View style={styles.secondaryActionIcon}>
+                <MaterialIcons name="calendar-today" size={24} color={theme.primary} />
+              </View>
               <Text style={styles.secondaryActionText}>Historial</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryActionButton}>
-              <MaterialIcons name="insights" size={20} color={theme.primary} />
+            <TouchableOpacity
+              style={styles.secondaryActionButton}
+              accessibilityRole="button"
+              accessibilityLabel="Ver análisis"
+              activeOpacity={0.8}
+            >
+              <View style={styles.secondaryActionIcon}>
+                <MaterialIcons name="insights" size={24} color={theme.primary} />
+              </View>
               <Text style={styles.secondaryActionText}>Análisis</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryActionButton}>
-              <MaterialIcons name="share" size={20} color={theme.primary} />
+            <TouchableOpacity
+              style={styles.secondaryActionButton}
+              accessibilityRole="button"
+              accessibilityLabel="Compartir estadísticas"
+              activeOpacity={0.8}
+            >
+              <View style={styles.secondaryActionIcon}>
+                <MaterialIcons name="share" size={24} color={theme.primary} />
+              </View>
               <Text style={styles.secondaryActionText}>Compartir</Text>
             </TouchableOpacity>
           </View>
@@ -217,13 +265,13 @@ const createStyles = (theme) => StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 30,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingTop: 50,
     paddingBottom: SPACING.lg,
     backgroundColor: theme.primary,
   },
@@ -234,46 +282,51 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.textInverse,
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    letterSpacing: 0.5,
   },
   sectionTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontSize: TYPOGRAPHY.fontSize.xl,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: theme.textPrimary,
     marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.lg,
   },
   quickStatsSection: {
-    paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.lg,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.lg - SPACING.xs,
   },
   statCard: {
     flex: 1,
     marginHorizontal: SPACING.xs,
-    padding: SPACING.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: SPACING.borderRadius,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
   },
   statIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.primary + '15',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.primary + '1A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SPACING.md,
+    marginBottom: SPACING.sm,
   },
   statContent: {
-    flex: 1,
+    alignItems: 'center',
   },
   statNumber: {
-    fontSize: TYPOGRAPHY.fontSize.xxl,
+    fontSize: TYPOGRAPHY.fontSize.xl,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: theme.textPrimary,
-    lineHeight: TYPOGRAPHY.fontSize.xxl * 1.2,
   },
   statLabel: {
     fontSize: TYPOGRAPHY.fontSize.sm,
@@ -285,156 +338,130 @@ const createStyles = (theme) => StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.xs,
     fontWeight: TYPOGRAPHY.fontWeight.regular,
     color: theme.textTertiary || theme.textSecondary,
-    marginTop: 2,
+    marginTop: 4,
   },
   statsSection: {
-    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
   },
   card: {
+    marginHorizontal: SPACING.lg,
     marginBottom: SPACING.lg,
-    alignItems: 'center',
-    padding: SPACING.lg,
+    padding: SPACING.md,
+    borderRadius: SPACING.borderRadius,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
   },
   chartHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.lg,
-    paddingBottom: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.borderLight,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.sm,
   },
   chartHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-  },
-  chartHeaderRight: {
-    alignItems: 'flex-end',
   },
   chartHeaderText: {
-    marginLeft: SPACING.md,
-    flex: 1,
-  },
-  trendIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.success + '15',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-    borderRadius: SPACING.borderRadius,
-  },
-  trendText: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
-    marginLeft: 4,
-  },
-  pieChartContainer: {
-    alignItems: 'center',
-  },
-  legendContainer: {
-    marginTop: SPACING.md,
-    width: '100%',
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.xs,
-    paddingHorizontal: SPACING.md,
-  },
-  legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: SPACING.sm,
-  },
-  legendText: {
-    flex: 1,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.regular,
-    color: theme.textPrimary,
-  },
-  legendPercentage: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
-    color: theme.textSecondary,
+    marginLeft: SPACING.sm,
   },
   chartTitle: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontSize: TYPOGRAPHY.fontSize.md,
     fontWeight: TYPOGRAPHY.fontWeight.semiBold,
     color: theme.textPrimary,
   },
   chartSubtitle: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.regular,
     color: theme.textSecondary,
-    marginTop: SPACING.xs,
+    marginTop: 2,
+  },
+  chartHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.cardBackground,
+    borderWidth: 1,
+    borderColor: theme.border,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 14,
+  },
+  badgeText: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: theme.textPrimary,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    marginLeft: 6,
+  },
+  chartContainer: {
+    position: 'relative',
+    alignItems: 'center',
   },
   chart: {
-    marginVertical: SPACING.sm,
+    marginTop: SPACING.sm,
     borderRadius: SPACING.borderRadius,
+  },
+  chartTooltip: {
+    position: 'absolute',
+    backgroundColor: theme.cardBackground,
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+  },
+  chartTooltipTitle: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: theme.textSecondary,
+    marginBottom: 2,
+  },
+  chartTooltipValue: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    color: theme.textPrimary,
   },
   actionContainer: {
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.lg,
   },
-  primaryActionButton: {
-    backgroundColor: theme.primary,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: SPACING.borderRadius + 4,
-    marginBottom: SPACING.md,
-    shadowColor: theme.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  actionButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  actionButtonTextContainer: {
-    marginLeft: SPACING.md,
-  },
-  actionButtonTitle: {
-    color: theme.textInverse,
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
-    lineHeight: TYPOGRAPHY.fontSize.md * 1.2,
-  },
-  actionButtonSubtitle: {
-    color: theme.textInverse + 'CC',
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.regular,
-    marginTop: 2,
-  },
   secondaryActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
+    marginTop: SPACING.md,
   },
   secondaryActionButton: {
-    flex: 1,
-    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  secondaryActionIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.cardBackground,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.sm,
-    marginHorizontal: SPACING.xs,
-    borderRadius: SPACING.borderRadius,
-    backgroundColor: theme.cardBackground,
+    marginBottom: SPACING.xs,
     borderWidth: 1,
-    borderColor: theme.borderLight,
+    borderColor: theme.border,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
   },
   secondaryActionText: {
-    color: theme.primary,
+    color: theme.textSecondary,
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
-    marginLeft: SPACING.xs,
   },
 });
 
