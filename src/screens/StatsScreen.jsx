@@ -183,59 +183,12 @@ const StatsScreen = () => {
               withVerticalLines={true}
               withHorizontalLines={true}
             />
-          </Card>
-
-          <Card style={styles.card}>
-            <View style={styles.chartHeader}>
-              <View style={styles.chartHeaderLeft}>
-                <MaterialIcons name="donut-small" size={24} color={theme.primary} />
-                <View style={styles.chartHeaderText}>
-                  <Text style={styles.chartTitle}>Distribución de Entrenamientos</Text>
-                  <Text style={styles.chartSubtitle}>Grupos musculares • Últimas 4 semanas</Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.pieChartContainer}>
-              <PieChart
-                data={muscleFocusData}
-                width={screenWidth - SPACING.lg * 4}
-                height={200}
-                chartConfig={{
-                  color: (opacity = 1) => theme.textPrimary,
-                  labelColor: (opacity = 1) => theme.textPrimary,
-                }}
-                accessor={"population"}
-                backgroundColor={"transparent"}
-                paddingLeft={"0"}
-                center={[0, 0]}
-                hasLegend={false}
-                absolute
-              />
-              <View style={styles.legendContainer}>
-                {muscleFocusData.map((item, index) => (
-                  <View key={index} style={styles.legendItem}>
-                    <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-                    <Text style={styles.legendText}>{item.name}</Text>
-                    <Text style={styles.legendPercentage}>{item.population}%</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </Card>
+          </Card>     
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionContainer}>
-          <TouchableOpacity style={styles.primaryActionButton} onPress={() => navigation.navigate('QrScanner')}>
-            <View style={styles.actionButtonContent}>
-              <MaterialIcons name="qr-code-scanner" size={24} color={theme.textInverse} />
-              <View style={styles.actionButtonTextContainer}>
-                <Text style={styles.actionButtonTitle}>Registrar Sesión</Text>
-                <Text style={styles.actionButtonSubtitle}>Escanear código QR</Text>
-              </View>
-            </View>
-            <MaterialIcons name="arrow-forward" size={20} color={theme.textInverse} />
-          </TouchableOpacity>
+         
           
           <View style={styles.secondaryActions}>
             <TouchableOpacity style={styles.secondaryActionButton}>
