@@ -14,6 +14,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
+import Card from '../components/ui/Card';
 
 export default function UserInfoScreen({ route }) {
   const { theme, toggleTheme, isDarkMode } = useTheme();
@@ -132,7 +133,7 @@ export default function UserInfoScreen({ route }) {
         </Animated.View>
 
         {/* User Information */}
-        <View style={styles.menuContainer}>
+        <Card style={styles.menuContainer}>
           <MenuItem
             icon="check-circle"
             label="Estado"
@@ -173,15 +174,12 @@ export default function UserInfoScreen({ route }) {
             value={userInfo.qrData}
             noBorder
           />
-
-         
-        </View>
+        </Card>
 
         {/* Action Buttons */}
         <View style={styles.actionContainer}>
-         
           <TouchableOpacity
-            style={[styles.scanAgainButton, { marginTop: 15, backgroundColor: theme.success }]}
+            style={styles.scanAgainButton}
             onPress={handleStatsPress}
             accessibilityRole="button"
             accessibilityLabel="Ver estadísticas"
@@ -215,7 +213,7 @@ const MenuItem = React.memo(function MenuItem({ icon, label, value, valueColor, 
       </View>
       <View style={styles.menuItemRight}>
         <Text
-          style={[styles.menuValue, { color: valueColor || theme.textPrimary }]}
+          style={[styles.menuValue, { color: valueColor || theme.textSecondary }]}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
@@ -237,6 +235,7 @@ const createStyles = (theme) => StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 30,
   },
 
   header: {
@@ -244,14 +243,8 @@ const createStyles = (theme) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 50,
     paddingBottom: 20,
     backgroundColor: theme.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    ...Platform.select({ android: { elevation: 4 } }),
   },
 
   headerButton: {
@@ -267,46 +260,43 @@ const createStyles = (theme) => StyleSheet.create({
 
   profileSection: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
 
   blueBackground: {
     backgroundColor: theme.primary,
     width: '100%',
     height: 120,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingBottom: 20,
+    paddingBottom: 60, // Increased padding to push the image down
   },
 
   profileImageContainer: {
-    position: 'relative',
-    marginBottom: -40,
+    position: 'absolute',
+    bottom: -50, // Adjust this to position the image correctly
   },
 
   profileImageRing: {
     width: 132,
     height: 132,
     borderRadius: 66,
+    backgroundColor: theme.background,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.35)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    ...Platform.select({ android: { elevation: 4 } }),
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
 
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth: 3,
-    borderColor: theme.textInverse,
   },
 
   checkBadge: {
@@ -314,69 +304,60 @@ const createStyles = (theme) => StyleSheet.create({
     bottom: 5,
     right: 5,
     backgroundColor: theme.success,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.textInverse,
+    borderColor: theme.background,
   },
 
   userInfoSection: {
     alignItems: 'center',
-    marginTop: 50,
-    marginBottom: 20,
+    marginTop: 60, // Increased margin to give space for the image
+    paddingHorizontal: 20,
   },
 
   userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: theme.textPrimary,
-    marginBottom: 5,
+    marginBottom: 4,
     textAlign: 'center',
   },
 
   userDni: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: theme.textSecondary,
-    marginBottom: 3,
+    marginBottom: 12,
   },
 
   userStatusPill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.success,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999,
-    marginTop: 6,
+    borderRadius: 20,
   },
 
   userStatusText: {
-    fontSize: 12,
+    fontSize: TYPOGRAPHY.fontSize.sm,
     color: theme.textInverse,
-    fontWeight: '600',
+    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
     marginLeft: 6,
   },
 
   menuContainer: {
-    backgroundColor: theme.surface,
     marginHorizontal: 20,
-    borderRadius: 12,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    ...Platform.select({ android: { elevation: 3 } }),
   },
 
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
@@ -385,13 +366,12 @@ const createStyles = (theme) => StyleSheet.create({
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
 
   menuIconContainer: {
-    width: 35,
-    height: 35,
-    borderRadius: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: theme.secondary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -399,53 +379,48 @@ const createStyles = (theme) => StyleSheet.create({
   },
 
   menuLabel: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: theme.textPrimary,
-    fontWeight: '500',
-    flex: 1,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
 
   menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
   },
 
   menuValue: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: theme.textSecondary,
+    fontWeight: TYPOGRAPHY.fontWeight.regular,
     marginRight: 10,
     textAlign: 'right',
     flexShrink: 1,
   },
 
   statusBadge: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 
   actionContainer: {
-    alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 30,
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
 
   scanAgainButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: theme.primary,
-    paddingHorizontal: 30,
     paddingVertical: 15,
-    borderRadius: 25,
+    borderRadius: 12,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    minWidth: 250,
-    justifyContent: 'center',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 
   scanAgainText: {
