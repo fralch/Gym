@@ -11,6 +11,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SPACING, TYPOGRAPHY } from '../../constants';
 import { useThemedStyles, useTheme } from '../../hooks/useTheme';
@@ -21,17 +22,34 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
   const styles = useThemedStyles(createStyles);
 
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date(2000, 0, 1)); // Default to Jan 1, 2000
   const [formData, setFormData] = useState({
     nombre: '',
     dni: '',
     fecha_nacimiento: '',
     genero: '',
-    email: '',
     telefono: '',
   });
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const onDateChange = (event, date) => {
+    setShowDatePicker(Platform.OS === 'ios'); // Keep open on iOS, close on Android
+
+    if (date) {
+      setSelectedDate(date);
+      const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      updateField('fecha_nacimiento', formattedDate);
+    }
+  };
+
+  const formatDateDisplay = (dateString) => {
+    if (!dateString) return 'Seleccionar fecha';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
   };
 
   const validateForm = () => {
@@ -44,18 +62,11 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
       return false;
     }
     if (!formData.fecha_nacimiento.trim()) {
-      Alert.alert('Error', 'La fecha de nacimiento es requerida (formato: YYYY-MM-DD)');
+      Alert.alert('Error', 'La fecha de nacimiento es requerida');
       return false;
     }
     if (!formData.genero) {
       Alert.alert('Error', 'El género es requerido');
-      return false;
-    }
-
-    // Validate date format
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(formData.fecha_nacimiento)) {
-      Alert.alert('Error', 'Formato de fecha inválido. Use YYYY-MM-DD (ej: 1990-01-15)');
       return false;
     }
 
@@ -74,7 +85,6 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
         dni: formData.dni.trim(),
         fecha_nacimiento: formData.fecha_nacimiento.trim(),
         genero: formData.genero,
-        email: formData.email.trim() || null,
         telefono: formData.telefono.trim() || null,
         estado: 'Activo',
         fecha_registro: new Date().toISOString().split('T')[0], // Today's date
@@ -113,9 +123,10 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
       dni: '',
       fecha_nacimiento: '',
       genero: '',
-      email: '',
       telefono: '',
     });
+    setSelectedDate(new Date(2000, 0, 1));
+    setShowDatePicker(false);
   };
 
   const handleClose = () => {
@@ -187,19 +198,34 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
             {/* Fecha de Nacimiento */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Fecha de Nacimiento *</Text>
-              <View style={styles.inputContainer}>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowDatePicker(true)}
+                disabled={loading}
+              >
                 <MaterialIcons name="calendar-today" size={20} color={theme.textSecondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="YYYY-MM-DD (ej: 1990-01-15)"
-                  placeholderTextColor={theme.textSecondary}
-                  value={formData.fecha_nacimiento}
-                  onChangeText={(value) => updateField('fecha_nacimiento', value)}
-                  editable={!loading}
-                  keyboardType="numeric"
-                  maxLength={10}
+                <Text
+                  style={[
+                    styles.datePickerText,
+                    !formData.fecha_nacimiento && styles.datePickerPlaceholder,
+                  ]}
+                >
+                  {formatDateDisplay(formData.fecha_nacimiento)}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color={theme.textSecondary} />
+              </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={selectedDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                  textColor={theme.textPrimary}
                 />
-              </View>
+              )}
             </View>
 
             {/* Género */}
@@ -254,25 +280,7 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
               </View>
             </View>
 
-            {/* Email (opcional) */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email (opcional)</Text>
-              <View style={styles.inputContainer}>
-                <MaterialIcons name="email" size={20} color={theme.textSecondary} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="usuario@ejemplo.com"
-                  placeholderTextColor={theme.textSecondary}
-                  value={formData.email}
-                  onChangeText={(value) => updateField('email', value)}
-                  editable={!loading}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-            </View>
-
-            {/* Teléfono (opcional) */}
+            {/* Teléfono */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Teléfono</Text>
               <View style={styles.inputContainer}>
@@ -408,6 +416,25 @@ const createStyles = (theme) =>
     genderButtonTextActive: {
       color: theme.textInverse,
       fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    },
+    datePickerButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.cardBackground,
+      borderRadius: SPACING.borderRadius,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.md,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    datePickerText: {
+      flex: 1,
+      paddingHorizontal: SPACING.sm,
+      fontSize: TYPOGRAPHY.fontSize.md,
+      color: theme.textPrimary,
+    },
+    datePickerPlaceholder: {
+      color: theme.textSecondary,
     },
     requiredNote: {
       fontSize: TYPOGRAPHY.fontSize.xs,
