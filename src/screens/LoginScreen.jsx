@@ -15,6 +15,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/AuthContext';
+import UserCreateModal from '../components/ui/UserCreateModal';
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -25,6 +26,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -47,25 +49,9 @@ export default function LoginScreen() {
     }
   };
 
-  // For testing: Quick login with mock data
-  const handleQuickLogin = async () => {
-    setLoading(true);
-    try {
-      // Set mock token and user data for testing
-      const mockToken = 'mock_token_for_testing';
-      const mockUserData = {
-        id_usuario: 1,
-        nombre: 'Usuario de Prueba',
-        email: 'test@example.com',
-      };
-
-      await setAuthData(mockToken, mockUserData);
-      Alert.alert('Éxito', 'Sesión iniciada en modo prueba');
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo iniciar sesión de prueba');
-    } finally {
-      setLoading(false);
-    }
+  const handleUserCreated = (userData) => {
+    // Optionally, you can show a success message or update the UI
+    console.log('User created successfully:', userData);
   };
 
   return (
@@ -138,18 +124,24 @@ export default function LoginScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.testButton}
-          onPress={handleQuickLogin}
+          style={styles.createUserButton}
+          onPress={() => setShowCreateUserModal(true)}
           disabled={loading}
         >
-          <MaterialIcons name="bug-report" size={20} color={theme.primary} />
-          <Text style={styles.testButtonText}>Modo Prueba</Text>
+          <MaterialIcons name="person-add" size={20} color={theme.primary} />
+          <Text style={styles.createUserButtonText}>Crear Usuario</Text>
         </TouchableOpacity>
 
         <Text style={styles.infoText}>
-          El modo prueba te permite acceder a la app sin credenciales
+          Crea nuevos usuarios para el gimnasio
         </Text>
       </View>
+
+      <UserCreateModal
+        visible={showCreateUserModal}
+        onClose={() => setShowCreateUserModal(false)}
+        onSuccess={handleUserCreated}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -238,7 +230,7 @@ const createStyles = (theme) =>
       paddingHorizontal: SPACING.md,
       fontSize: TYPOGRAPHY.fontSize.sm,
     },
-    testButton: {
+    createUserButton: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -249,7 +241,7 @@ const createStyles = (theme) =>
       borderColor: theme.primary,
       minHeight: 50,
     },
-    testButtonText: {
+    createUserButtonText: {
       color: theme.primary,
       fontSize: TYPOGRAPHY.fontSize.md,
       fontWeight: TYPOGRAPHY.fontWeight.semiBold,
