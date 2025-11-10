@@ -41,6 +41,10 @@ export default function QrScreen() {
     }
   };
 
+  const handleLogoPress = () => {
+    navigation.navigate('Login');
+  };
+
   const handleBarCodeScanned = async ({ type, data }) => {
     if (isProcessing) return; // Prevent multiple scans
 
@@ -101,10 +105,11 @@ export default function QrScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="black" />
-      
+
       <QRCodeScanner
         scanned={scanned}
         onBarCodeScanned={handleBarCodeScanned}
+        onLogoPress={handleLogoPress}
       />
     </View>
   );

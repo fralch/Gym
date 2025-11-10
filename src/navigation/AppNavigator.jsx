@@ -25,48 +25,47 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
+        initialRouteName="QrScanner"
         screenOptions={{
           headerShown: false,
           gestureEnabled: true,
           animation: 'slide_from_right',
         }}
       >
-        {!isAuthenticated ? (
-          // Auth Stack - Show login screen when not authenticated
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{
-              title: 'Iniciar Sesión',
-              gestureEnabled: false,
-            }}
-          />
-        ) : (
-          // Main App Stack - Show main screens when authenticated
-          <>
-            <Stack.Screen
-              name="QrScanner"
-              component={QrScreen}
-              options={{
-                title: 'Escáner QR',
-              }}
-            />
-            <Stack.Screen
-              name="UserInfo"
-              component={UserInfoScreen}
-              options={{
-                title: 'Información del Usuario',
-              }}
-            />
-            <Stack.Screen
-              name="Stats"
-              component={StatsScreen}
-              options={{
-                title: 'Estadísticas',
-              }}
-            />
-          </>
-        )}
+        {/* QR Scanner - Always available as initial screen */}
+        <Stack.Screen
+          name="QrScanner"
+          component={QrScreen}
+          options={{
+            title: 'Escáner QR',
+          }}
+        />
+
+        {/* Login screen */}
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            title: 'Iniciar Sesión',
+            gestureEnabled: false,
+          }}
+        />
+
+        {/* Protected screens - Only accessible when authenticated */}
+        <Stack.Screen
+          name="UserInfo"
+          component={UserInfoScreen}
+          options={{
+            title: 'Información del Usuario',
+          }}
+        />
+        <Stack.Screen
+          name="Stats"
+          component={StatsScreen}
+          options={{
+            title: 'Estadísticas',
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
