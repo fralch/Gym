@@ -1,15 +1,15 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, StatusBar, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, StatusBar, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-chart-kit';
 import { useNavigation } from '@react-navigation/native';
-import { attendanceData } from '../data/mockData';
 import { useTheme } from '../hooks/useTheme';
 import { useThemedStyles } from '../hooks/useTheme';
 import Card from '../components/ui/Card';
 import { TYPOGRAPHY, SPACING } from '../constants';
+import { authService, asistenciasService } from '../services';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -44,6 +44,107 @@ const StatsScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [tooltip, setTooltip] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [attendanceData, setAttendanceData] = useState({
+    labels: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+    datasets: [{ data: [0, 0, 0, 0, 0, 0, 0] }]
+  });
+  const [totalAttendance, setTotalAttendance] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []);
+
+  const fetchAttendanceData = async () => {
+    try {
+      setLoading(true);
+
+      // Get stored user data
+      const storedUserData = await authService.getUserData();
+
+      if (storedUserData && storedUserData.id_usuario) {
+        // Fetch all attendance records for the user
+        const response = await asistenciasService.getByUser(storedUserData.id_usuario);
+
+        if (response.success && response.data) {
+          const attendances = response.data;
+
+          // Process attendance data for the last 7 days
+          const last7Days = getLast7Days();
+          const attendanceByDate = {};
+
+          attendances.forEach(record => {
+            const date = record.fecha_asistencia;
+            attendanceByDate[date] = true;
+          });
+
+          // Create chart data
+          const chartData = last7Days.map(day => ({
+            date: day.date,
+            label: day.label,
+            attended: attendanceByDate[day.date] ? 1 : 0
+          }));
+
+          setAttendanceData({
+            labels: chartData.map(d => d.label),
+            datasets: [{ data: chartData.map(d => d.attended) }]
+          });
+
+          // Calculate total attendance count
+          setTotalAttendance(attendances.length);
+
+          // Calculate current streak
+          const streak = calculateStreak(attendanceByDate);
+          setCurrentStreak(streak);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching attendance data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getLast7Days = () => {
+    const days = [];
+    const dayLabels = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+
+      const dateString = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const dayLabel = dayLabels[date.getDay()];
+
+      days.push({
+        date: dateString,
+        label: dayLabel
+      });
+    }
+
+    return days;
+  };
+
+  const calculateStreak = (attendanceByDate) => {
+    let streak = 0;
+    const today = new Date();
+
+    for (let i = 0; i < 365; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split('T')[0];
+
+      if (attendanceByDate[dateString]) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
 
   const weeklyCount = useMemo(() => {
     const data = attendanceData?.datasets?.[0]?.data || [];
@@ -134,7 +235,7 @@ const StatsScreen = () => {
                 <MaterialIcons name="local-fire-department" size={24} color={theme.warning} />
               </View>
               <View style={styles.statContent}>
-                <Text style={styles.statNumber}>12</Text>
+                <Text style={styles.statNumber}>{loading ? '...' : currentStreak}</Text>
                 <Text style={styles.statLabel}>Días Activo</Text>
                 <Text style={styles.statChange}>Racha actual</Text>
               </View>
@@ -155,7 +256,13 @@ const StatsScreen = () => {
         {/* Charts Section */}
         <View style={styles.statsSection}>
           <Text style={styles.sectionTitle}>Tendencias</Text>
-          <Card style={styles.card}>
+          {loading ? (
+            <Card style={[styles.card, { alignItems: 'center', justifyContent: 'center', height: 300 }]}>
+              <ActivityIndicator size="large" color={theme.primary} />
+              <Text style={[styles.statLabel, { marginTop: 16 }]}>Cargando estadísticas...</Text>
+            </Card>
+          ) : (
+            <Card style={styles.card}>
             <View style={styles.chartHeader}>
               <View style={styles.chartHeaderLeft}>
                 <MaterialIcons name="show-chart" size={20} color={theme.primary} />
@@ -212,6 +319,7 @@ const StatsScreen = () => {
               )}
             </View>
           </Card>
+          )}
         </View>
 
         {/* Action Buttons */}

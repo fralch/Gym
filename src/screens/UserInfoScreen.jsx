@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Platform, Animated, Easing } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Platform, Animated, Easing, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
@@ -15,22 +15,113 @@ import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import Card from '../components/ui/Card';
+import { authService, miembrosService, membresiasService } from '../services';
 
 export default function UserInfoScreen({ route }) {
   const { theme, toggleTheme, isDarkMode } = useTheme();
   const styles = useThemedStyles(createStyles);
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  
-  const { qrData } = route.params || {};
 
-  const userInfo = {
-    name: 'Alexander Frank Cairampoma',
-    dni: '12345678',
-    startDate: '19-09-2022',
-    endDate: '19-09-2023',
-    remainingDays: 298,
-    qrData: qrData || 'No data scanned',
+  const { qrData, checkinSuccess, checkinTime } = route.params || {};
+
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState({
+    name: 'Cargando...',
+    dni: '...',
+    startDate: '...',
+    endDate: '...',
+    remainingDays: 0,
+    estado: 'Inactivo',
+    qrData: qrData || checkinTime || 'No data scanned',
+  });
+  const [membershipStatus, setMembershipStatus] = useState('Inactivo');
+
+  // Fetch user data
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+
+      // Get stored user data from auth service
+      const storedUserData = await authService.getUserData();
+
+      if (storedUserData && storedUserData.id_usuario) {
+        // Fetch full member details
+        const memberResponse = await miembrosService.getById(storedUserData.id_usuario);
+
+        if (memberResponse.success && memberResponse.data) {
+          const member = memberResponse.data;
+
+          // Fetch active membership
+          const activeMembership = await membresiasService.getActiveMembership(member.id_usuario);
+
+          // Calculate remaining days
+          let remainingDays = 0;
+          let startDate = 'N/A';
+          let endDate = 'N/A';
+          let status = 'Inactivo';
+
+          if (activeMembership) {
+            const today = new Date();
+            const end = new Date(activeMembership.fecha_fin);
+            const start = new Date(activeMembership.fecha_inicio);
+
+            remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+            startDate = formatDate(activeMembership.fecha_inicio);
+            endDate = formatDate(activeMembership.fecha_fin);
+            status = activeMembership.estado;
+          }
+
+          setUserInfo({
+            name: member.nombre,
+            dni: member.dni,
+            startDate: startDate,
+            endDate: endDate,
+            remainingDays: remainingDays > 0 ? remainingDays : 0,
+            estado: status,
+            qrData: qrData || checkinTime || 'No data scanned',
+          });
+          setMembershipStatus(status);
+        }
+      } else {
+        // If no user data, show default message
+        setUserInfo({
+          name: 'Usuario no encontrado',
+          dni: 'N/A',
+          startDate: 'N/A',
+          endDate: 'N/A',
+          remainingDays: 0,
+          estado: 'Inactivo',
+          qrData: qrData || 'No data scanned',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUserInfo({
+        name: 'Error al cargar',
+        dni: 'N/A',
+        startDate: 'N/A',
+        endDate: 'N/A',
+        remainingDays: 0,
+        estado: 'Inactivo',
+        qrData: qrData || 'Error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   const getStatusColor = (days) => {
@@ -123,12 +214,25 @@ export default function UserInfoScreen({ route }) {
           </View>
           
           <View style={styles.userInfoSection}>
-            <Text style={styles.userName}>{userInfo.name}</Text>
-            <Text style={styles.userDni}>DNI: {userInfo.dni}</Text>
-            <View style={styles.userStatusPill}>
-              <MaterialIcons name="check-circle" size={16} color={theme.textInverse} />
-              <Text style={styles.userStatusText}>Activo</Text>
-            </View>
+            {loading ? (
+              <ActivityIndicator size="large" color={theme.primary} />
+            ) : (
+              <>
+                <Text style={styles.userName}>{userInfo.name}</Text>
+                <Text style={styles.userDni}>DNI: {userInfo.dni}</Text>
+                <View style={[
+                  styles.userStatusPill,
+                  { backgroundColor: membershipStatus === 'Activa' ? theme.success : theme.error }
+                ]}>
+                  <MaterialIcons
+                    name={membershipStatus === 'Activa' ? 'check-circle' : 'cancel'}
+                    size={16}
+                    color={theme.textInverse}
+                  />
+                  <Text style={styles.userStatusText}>{membershipStatus}</Text>
+                </View>
+              </>
+            )}
           </View>
         </Animated.View>
 
@@ -137,8 +241,8 @@ export default function UserInfoScreen({ route }) {
           <MenuItem
             icon="check-circle"
             label="Estado"
-            value="Activo"
-            valueColor={theme.success}
+            value={membershipStatus}
+            valueColor={membershipStatus === 'Activa' ? theme.success : theme.error}
           />
 
           <MenuItem
