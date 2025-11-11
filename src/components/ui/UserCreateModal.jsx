@@ -15,7 +15,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SPACING, TYPOGRAPHY } from '../../constants';
 import { useThemedStyles, useTheme } from '../../hooks/useTheme';
-import miembrosService from '../../services/miembrosService';
+import registroService from '../../services/registroService';
 
 export default function UserCreateModal({ visible, onClose, onSuccess }) {
   const { theme } = useTheme();
@@ -90,7 +90,7 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
         fecha_registro: new Date().toISOString().split('T')[0], // Today's date
       };
 
-      const response = await miembrosService.create(memberData);
+      const response = await registroService.register(memberData);
 
       Alert.alert(
         'Éxito',

@@ -1,264 +1,549 @@
-# API Integration Guide
+# Rutas Correctas API Gimnasio
 
-This document describes the API integration implemented in the Gym app.
+Documentación de las rutas correctas para evitar errores 404.
 
-## Overview
+## URL Base
+```
+http://tu-dominio.com/api/v1/endpoint/gimnasio
+```
 
-The app now integrates with the Gimnasio API v1 (`https://grupoviajesroxana.com/api/v1/endpoint/gimnasio`) to handle:
-- User authentication
-- Member management
-- Membership tracking
-- Attendance records
-- QR code check-in
+**IMPORTANTE:** NO incluir `/api/` después de `/endpoint/`
+- ✅ Correcto: `/api/v1/endpoint/gimnasio/miembros`
+- ❌ Incorrecto: `/api/v1/endpoint/api/gimnasio/miembros`
 
-## Setup
+---
 
-### 1. Install Dependencies
+## Autenticación
 
+Todas las rutas requieren autenticación con Sanctum:
+```
+Authorization: Bearer {tu_token_aqui}
+```
+
+---
+
+## 1. Miembros
+
+### Listar todos los miembros
 ```bash
-npm install axios
+curl -X GET \
+  http://localhost/api/v1/endpoint/gimnasio/miembros \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
 ```
 
-### 2. Configuration
-
-The API base URL is configured in `src/services/api.js`:
-```javascript
-const BASE_URL = 'https://grupoviajesroxana.com/api/v1/endpoint';
+### Buscar miembros por nombre o DNI
+```bash
+curl -X GET \
+  "http://localhost/api/v1/endpoint/gimnasio/miembros?search=Juan" \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
 ```
 
-To change the API endpoint, modify this constant.
-
-## Services
-
-### API Service (`src/services/api.js`)
-- Axios instance with automatic token injection
-- Request/response interceptors for error handling
-- Automatic token refresh on 401 errors
-
-### Auth Service (`src/services/authService.js`)
-- `login(email, password)` - Login user
-- `logout()` - Clear user session
-- `setToken(token)` - Store auth token
-- `getToken()` - Retrieve auth token
-- `setUserData(userData)` - Store user data
-- `getUserData()` - Retrieve user data
-- `isAuthenticated()` - Check auth status
-
-### Miembros Service (`src/services/miembrosService.js`)
-- `getAll(search)` - List all members
-- `getById(id_usuario)` - Get member details
-- `create(memberData)` - Create new member
-- `update(id_usuario, memberData)` - Update member
-- `delete(id_usuario)` - Delete member
-
-### Membresías Service (`src/services/membresiasService.js`)
-- `getAll(filters)` - List memberships
-- `getById(id_membresia)` - Get membership details
-- `create(membershipData)` - Create membership
-- `update(id_membresia, membershipData)` - Update membership
-- `delete(id_membresia)` - Delete membership
-- `getActiveMembership(id_usuario)` - Get active membership for user
-
-### Asistencias Service (`src/services/asistenciasService.js`)
-- `getAll(filters)` - List attendance records
-- `getById(id_asistencia)` - Get attendance details
-- `create(attendanceData)` - Create attendance record
-- `update(id_asistencia, attendanceData)` - Update attendance
-- `delete(id_asistencia)` - Delete attendance
-- `getByUser(id_usuario, limit)` - Get user attendance
-- `getTodayAttendance(id_usuario)` - Check today's attendance
-
-### Check-in Service (`src/services/checkinService.js`)
-- `marcarAsistencia(qrToken)` - Mark attendance via QR code
-- `hasCheckedInToday()` - Check if already checked in today
-
-## Features
-
-### 1. Authentication Flow
-
-The app uses JWT token authentication with `AsyncStorage`:
-
-1. User logs in via `LoginScreen`
-2. Token is stored securely
-3. Token is automatically added to all API requests
-4. App redirects to main screens after successful login
-
-**Test Mode**: Use the "Modo Prueba" button on login screen to test without credentials.
-
-### 2. QR Code Check-in
-
-When scanning a QR code:
-1. Camera captures QR data
-2. App calls `checkinService.marcarAsistencia(qrData)`
-3. API validates:
-   - User authentication
-   - QR token validity
-   - Active membership
-   - Duplicate check-in
-4. Success/error message is displayed
-
-### 3. User Information
-
-`UserInfoScreen` displays:
-- Member name, DNI
-- Active membership status
-- Start/end dates
-- Remaining days
-- Real-time data from API
-
-### 4. Statistics
-
-`StatsScreen` shows:
-- Last 7 days attendance chart
-- Weekly attendance count
-- Current streak
-- Total attendance
-- All calculated from real API data
-
-## Authentication Context
-
-The `AuthContext` provides:
-- `user` - Current user data
-- `isAuthenticated` - Auth status
-- `loading` - Loading state
-- `login(email, password)` - Login function
-- `logout()` - Logout function
-- `setAuthData(token, userData)` - Set auth data manually
-- `updateUser(userData)` - Update user data
-- `checkAuthStatus()` - Refresh auth status
-
-### Usage Example
-
-```javascript
-import { useAuth } from '../contexts/AuthContext';
-
-function MyComponent() {
-  const { user, isAuthenticated, logout } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Text>Please login</Text>;
-  }
-
-  return (
-    <View>
-      <Text>Welcome {user.nombre}</Text>
-      <Button title="Logout" onPress={logout} />
-    </View>
-  );
-}
-```
-
-## Protected Routes
-
-The `AppNavigator` automatically handles route protection:
-- Shows `LoginScreen` when `isAuthenticated === false`
-- Shows main app screens when `isAuthenticated === true`
-- No manual navigation needed
-
-## Error Handling
-
-All services include comprehensive error handling:
-
-1. **Network Errors**: Caught and logged
-2. **401 Unauthorized**: Auto-logout, redirect to login
-3. **403 Forbidden**: Display error message to user
-4. **422 Validation**: Show validation errors
-5. **Other Errors**: Generic error message
-
-## API Response Format
-
-### Success Response
+**Respuesta exitosa (200):**
 ```json
 {
   "success": true,
-  "data": { ... }
+  "data": [
+    {
+      "id_usuario": 1,
+      "nombre": "Juan Perez",
+      "dni": "12345678",
+      "fecha_nacimiento": "1990-01-01",
+      "genero": "M",
+      "foto_perfil": null,
+      "estado": "Activo",
+      "fecha_registro": "2025-11-01"
+    }
+  ]
 }
 ```
 
-### Error Response
+### Crear un nuevo miembro
+```bash
+curl -X POST \
+  http://localhost/api/v1/endpoint/gimnasio/miembros \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Juan Perez",
+    "dni": "12345678",
+    "fecha_nacimiento": "1990-01-01",
+    "genero": "M",
+    "estado": "Activo",
+    "fecha_registro": "2025-11-01"
+  }'
+```
+
+**Respuesta exitosa (201):**
 ```json
 {
-  "error": "Error message"
+  "success": true,
+  "data": {
+    "id_usuario": 1,
+    "nombre": "Juan Perez",
+    "dni": "12345678",
+    "fecha_nacimiento": "1990-01-01",
+    "genero": "M",
+    "foto_perfil": null,
+    "estado": "Activo",
+    "fecha_registro": "2025-11-01"
+  }
 }
 ```
 
-### Check-in Response
+### Obtener un miembro específico
+```bash
+curl -X GET \
+  http://localhost/api/v1/endpoint/gimnasio/miembros/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+### Actualizar un miembro
+```bash
+curl -X PUT \
+  http://localhost/api/v1/endpoint/gimnasio/miembros/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Juan Carlos Perez",
+    "estado": "Inactivo"
+  }'
+```
+
+### Eliminar un miembro
+```bash
+curl -X DELETE \
+  http://localhost/api/v1/endpoint/gimnasio/miembros/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+---
+
+## 2. Membresías
+
+### Listar todas las membresías
+```bash
+curl -X GET \
+  http://localhost/api/v1/endpoint/gimnasio/membresias \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+### Filtrar membresías por usuario
+```bash
+curl -X GET \
+  "http://localhost/api/v1/endpoint/gimnasio/membresias?id_usuario=1" \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+### Filtrar membresías por estado
+```bash
+curl -X GET \
+  "http://localhost/api/v1/endpoint/gimnasio/membresias?estado=Activa" \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id_membresia": 1,
+      "id_usuario": 1,
+      "tipo_plan": "Mensual",
+      "fecha_inicio": "2025-11-01",
+      "fecha_fin": "2025-12-01",
+      "estado": "Activa"
+    }
+  ]
+}
+```
+
+### Crear una nueva membresía
+```bash
+curl -X POST \
+  http://localhost/api/v1/endpoint/gimnasio/membresias \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_usuario": 1,
+    "tipo_plan": "Mensual",
+    "fecha_inicio": "2025-11-01",
+    "fecha_fin": "2025-12-01",
+    "estado": "Activa"
+  }'
+```
+
+### Obtener una membresía específica
+```bash
+curl -X GET \
+  http://localhost/api/v1/endpoint/gimnasio/membresias/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+### Actualizar una membresía
+```bash
+curl -X PUT \
+  http://localhost/api/v1/endpoint/gimnasio/membresias/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "estado": "Inactiva",
+    "fecha_fin": "2025-11-30"
+  }'
+```
+
+### Eliminar una membresía
+```bash
+curl -X DELETE \
+  http://localhost/api/v1/endpoint/gimnasio/membresias/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+---
+
+## 3. Asistencias
+
+### Listar todas las asistencias
+```bash
+curl -X GET \
+  http://localhost/api/v1/endpoint/gimnasio/asistencias \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+### Filtrar asistencias por usuario
+```bash
+curl -X GET \
+  "http://localhost/api/v1/endpoint/gimnasio/asistencias?id_usuario=1" \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+### Filtrar asistencias por fecha
+```bash
+curl -X GET \
+  "http://localhost/api/v1/endpoint/gimnasio/asistencias?fecha_asistencia=2025-11-09" \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id_asistencia": 1,
+      "id_usuario": 1,
+      "fecha_asistencia": "2025-11-09",
+      "hora_entrada": "08:30:00"
+    }
+  ]
+}
+```
+
+### Crear asistencia manual
+```bash
+curl -X POST \
+  http://localhost/api/v1/endpoint/gimnasio/asistencias \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id_usuario": 1,
+    "fecha_asistencia": "2025-11-09",
+    "hora_entrada": "08:30:00"
+  }'
+```
+
+### Obtener una asistencia específica
+```bash
+curl -X GET \
+  http://localhost/api/v1/endpoint/gimnasio/asistencias/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+### Actualizar una asistencia
+```bash
+curl -X PUT \
+  http://localhost/api/v1/endpoint/gimnasio/asistencias/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "hora_entrada": "09:00:00"
+  }'
+```
+
+### Eliminar una asistencia
+```bash
+curl -X DELETE \
+  http://localhost/api/v1/endpoint/gimnasio/asistencias/1 \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json"
+```
+
+---
+
+## 4. Check-in con QR
+
+### Marcar asistencia con código QR
+```bash
+curl -X POST \
+  http://localhost/api/v1/endpoint/gimnasio/marcar-asistencia \
+  -H "Authorization: Bearer {TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "qr_token": "GYM_TOKEN_2025"
+  }'
+```
+
+**Respuesta exitosa - Primera vez del día (200):**
 ```json
 {
   "mensaje": "Asistencia registrada",
-  "hora": "14:30:00"
+  "hora": "08:30:15"
 }
 ```
 
-## QR Token Configuration
+**Respuesta - Ya registrado hoy (200):**
+```json
+{
+  "mensaje": "Ya registrado hoy",
+  "hora": "08:30:15"
+}
+```
 
-The QR check-in requires a valid token. Default token: `GYM_TOKEN_2025`
+**Errores posibles:**
+- **401 Unauthorized:** Token de autenticación inválido o faltante
+- **403 Forbidden - QR inválido:**
+  ```json
+  {
+    "error": "QR inválido"
+  }
+  ```
+- **403 Forbidden - Sin membresía:**
+  ```json
+  {
+    "error": "Membresía inactiva"
+  }
+  ```
 
-To update the QR token on the server:
+---
+
+## Códigos de Estado HTTP
+
+| Código | Descripción |
+|--------|-------------|
+| 200 | Operación exitosa (GET, PUT, DELETE, check-in) |
+| 201 | Recurso creado exitosamente (POST) |
+| 401 | No autenticado - Token inválido o faltante |
+| 403 | Prohibido - QR inválido o membresía inactiva |
+| 404 | Recurso no encontrado |
+| 422 | Error de validación en los datos enviados |
+
+---
+
+## Ejemplos con JavaScript (Fetch)
+
+### Listar miembros
+```javascript
+fetch('http://localhost/api/v1/endpoint/gimnasio/miembros', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  }
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+```
+
+### Crear miembro
+```javascript
+fetch('http://localhost/api/v1/endpoint/gimnasio/miembros', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    nombre: "Juan Perez",
+    dni: "12345678",
+    fecha_nacimiento: "1990-01-01",
+    genero: "M",
+    estado: "Activo",
+    fecha_registro: "2025-11-01"
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+```
+
+### Marcar asistencia con QR
+```javascript
+fetch('http://localhost/api/v1/endpoint/gimnasio/marcar-asistencia', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    qr_token: "GYM_TOKEN_2025"
+  })
+})
+.then(response => response.json())
+.then(data => {
+  if (data.mensaje) {
+    console.log('Éxito:', data.mensaje, data.hora);
+  } else {
+    console.error('Error:', data.error);
+  }
+})
+.catch(error => console.error('Error:', error));
+```
+
+---
+
+## Ejemplos con Axios
+
+### Configuración base
+```javascript
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost/api/v1/endpoint',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + token
+  }
+});
+```
+
+### Listar miembros con búsqueda
+```javascript
+api.get('/gimnasio/miembros', {
+  params: { search: 'Juan' }
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error));
+```
+
+### Crear membresía
+```javascript
+api.post('/gimnasio/membresias', {
+  id_usuario: 1,
+  tipo_plan: "Mensual",
+  fecha_inicio: "2025-11-01",
+  fecha_fin: "2025-12-01",
+  estado: "Activa"
+})
+.then(response => console.log(response.data))
+.catch(error => console.error(error));
+```
+
+---
+
+## Errores Comunes
+
+### 1. Error 404 - Ruta duplicada
+❌ **Incorrecto:**
+```
+/api/v1/endpoint/api/gimnasio/miembros
+```
+
+✅ **Correcto:**
+```
+/api/v1/endpoint/gimnasio/miembros
+```
+
+### 2. Error 404 - Endpoint inexistente
+❌ **No existe:**
+```
+/api/v1/endpoint/gimnasio/registro
+```
+
+✅ **Usar en su lugar:**
+- Para registrar miembro: `/api/v1/endpoint/gimnasio/miembros` (POST)
+- Para check-in: `/api/v1/endpoint/gimnasio/marcar-asistencia` (POST)
+
+### 3. Error 401 - Sin autenticación
+Asegúrate de incluir el header de autorización en todas las peticiones:
+```
+Authorization: Bearer {tu_token}
+```
+
+### 4. Error 403 - QR Check-in
+- Verifica que el token QR sea correcto: `GYM_TOKEN_2025`
+- Asegúrate de que el usuario tenga una membresía activa
+- La membresía debe tener `estado='Activa'` y `fecha_fin >= hoy`
+
+---
+
+## Configuración del Token QR
+
+Para cambiar el token QR del sistema:
+
 ```sql
 UPDATE g_configuracion
-SET valor='NEW_TOKEN'
-WHERE clave='qr_checkin_token';
+SET valor = 'NUEVO_TOKEN_2025'
+WHERE clave = 'qr_checkin_token';
 ```
+
+---
 
 ## Testing
 
-### Test User Data
-To test the app without a real backend:
-1. Click "Modo Prueba" on login screen
-2. Mock user data is created:
-   - id_usuario: 1
-   - nombre: "Usuario de Prueba"
-   - email: "test@example.com"
-
-### API Testing
-Use tools like Postman or curl to test the API:
-
+### Probar autenticación
 ```bash
-# Login
-curl -X POST https://grupoviajesroxana.com/api/v1/endpoint/auth/login \
+# 1. Obtener token
+curl -X POST http://localhost/api/v1/endpoint/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password"}'
+  -d '{"dni": "tu_dni", "password": "tu_password"}'
 
-# Check-in
-curl -X POST https://grupoviajesroxana.com/api/v1/endpoint/gimnasio/marcar-asistencia \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"qr_token":"GYM_TOKEN_2025"}'
+# 2. Usar el token en las peticiones
+export TOKEN="tu_token_aqui"
+
+curl -X GET http://localhost/api/v1/endpoint/gimnasio/miembros \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
-## Next Steps
+### Script de prueba completo
+```bash
+#!/bin/bash
+TOKEN="tu_token_aqui"
+BASE_URL="http://localhost/api/v1/endpoint/gimnasio"
 
-1. **Install axios**: `npm install axios`
-2. **Configure API URL**: Update `BASE_URL` in `src/services/api.js` if needed
-3. **Set up backend**: Ensure API endpoints are accessible
-4. **Test authentication**: Try logging in with real credentials
-5. **Configure QR token**: Set up the QR token on server
+echo "1. Listar miembros"
+curl -X GET "$BASE_URL/miembros" \
+  -H "Authorization: Bearer $TOKEN"
 
-## Troubleshooting
+echo "\n2. Crear miembro"
+curl -X POST "$BASE_URL/miembros" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Test User",
+    "dni": "99999999",
+    "fecha_nacimiento": "1990-01-01",
+    "genero": "M",
+    "estado": "Activo",
+    "fecha_registro": "2025-11-10"
+  }'
 
-### "Network Error"
-- Check internet connection
-- Verify API URL is correct
-- Ensure API server is running
-
-### "401 Unauthorized"
-- Token may be expired
-- Try logging in again
-- Check token is being sent in headers
-
-### "403 Forbidden - QR inválido"
-- Verify QR token matches server configuration
-- Check QR code contains correct token
-
-### "Membresía inactiva"
-- User's membership has expired
-- Create/renew membership on server
-
-## Security Notes
-
-- Tokens are stored in `AsyncStorage` (secure on device)
-- Never commit tokens or credentials to git
-- Use HTTPS for all API calls
-- Implement token refresh if sessions expire
-- Add additional security layers as needed (biometrics, etc.)
+echo "\n3. Marcar asistencia"
+curl -X POST "$BASE_URL/marcar-asistencia" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"qr_token": "GYM_TOKEN_2025"}'
+```

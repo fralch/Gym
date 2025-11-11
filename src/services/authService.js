@@ -89,7 +89,7 @@ class AuthService {
    */
   async login(email, password) {
     try {
-      const response = await api.post('/auth/login', {
+      const response = await api.post('/login', {
         email,
         password,
       });
