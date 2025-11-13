@@ -17,21 +17,11 @@ class RegistroService {
    */
   async register(memberData) {
     try {
-      // Try public registration endpoint first
-      const response = await publicApi.post('/gimnasio/registro', memberData);
+      // Use the correct endpoint according to API documentation
+      // Note: /gimnasio/registro does not exist in the API
+      const response = await publicApi.post('/gimnasio/miembros', memberData);
       return response.data;
     } catch (error) {
-      // If public endpoint doesn't exist, try the regular miembros endpoint
-      // (This will work if the backend allows public creation)
-      if (error.response?.status === 404) {
-        try {
-          const response = await publicApi.post('/gimnasio/miembros', memberData);
-          return response.data;
-        } catch (fallbackError) {
-          console.error('Error registering member (fallback):', fallbackError.response?.data || fallbackError.message);
-          throw fallbackError;
-        }
-      }
       console.error('Error registering member:', error.response?.data || error.message);
       throw error;
     }
