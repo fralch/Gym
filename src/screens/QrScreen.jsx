@@ -7,13 +7,15 @@ import {
   PermissionsRequest,
   QRCodeScanner
 } from '../components/scanner';
-import { checkinService } from '../services';
+import { checkinService, membresiasService } from '../services';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function QrScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const navigation = useNavigation();
+  const { user } = useAuth();
 
   useEffect(() => {
     getCameraPermissions();
@@ -58,10 +60,25 @@ export default function QrScreen() {
       // Call the check-in API with the scanned QR token
       const response = await checkinService.marcarAsistencia(data);
 
-      // Success - show confirmation and navigate
+      // Fetch membership details to show in confirmation
+      let membershipInfo = '';
+      if (user?.id_usuario) {
+        try {
+          const membership = await membresiasService.getActiveMembership(user.id_usuario);
+          if (membership) {
+            const fechaFin = new Date(membership.fecha_fin).toLocaleDateString('es-ES');
+            membershipInfo = `\n\nMembresía: ${membership.tipo_plan}\nVence: ${fechaFin}`;
+          }
+        } catch (membershipError) {
+          console.error('Error fetching membership:', membershipError);
+          // Continue without membership info
+        }
+      }
+
+      // Success - show confirmation with membership details
       Alert.alert(
         '¡Asistencia Registrada! ✓',
-        `${response.mensaje}\nHora: ${response.hora}`,
+        `${response.mensaje}\nHora: ${response.hora}${membershipInfo}`,
         [
           {
             text: 'OK',
@@ -79,9 +96,25 @@ export default function QrScreen() {
       setScanned(false);
       setIsProcessing(false);
 
+      // Enhanced error messages for membership issues
+      let errorTitle = 'Error al Registrar Asistencia';
+      let errorMessage = error.message || 'No se pudo registrar la asistencia. Intenta de nuevo.';
+
+      // Customize message based on error type
+      if (error.message?.includes('membresía está inactiva')) {
+        errorTitle = 'Membresía Inactiva';
+        errorMessage = 'Tu membresía ha expirado o está inactiva.\n\nPor favor, contacta a recepción para renovar tu membresía y poder acceder al gimnasio.';
+      } else if (error.message?.includes('QR inválido')) {
+        errorTitle = 'Código QR Inválido';
+        errorMessage = 'El código QR escaneado no es válido.\n\nAsegúrate de escanear el código QR oficial del gimnasio.';
+      } else if (error.message?.includes('No autenticado')) {
+        errorTitle = 'Sesión Expirada';
+        errorMessage = 'Tu sesión ha expirado.\n\nPor favor, inicia sesión nuevamente.';
+      }
+
       Alert.alert(
-        'Error al Registrar Asistencia',
-        error.message || 'No se pudo registrar la asistencia. Intenta de nuevo.',
+        errorTitle,
+        errorMessage,
         [
           {
             text: 'OK',
