@@ -92,10 +92,23 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
 
       const response = await registroService.register(memberData);
       resetForm();
-      if (onSuccess) {
-        onSuccess(response.data);
-      }
-      onClose();
+
+      // Show success message
+      Alert.alert(
+        'Éxito',
+        'Usuario creado exitosamente',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              if (onSuccess) {
+                onSuccess(response.data);
+              }
+              onClose();
+            }
+          }
+        ]
+      );
     } catch (error) {
       console.error('Error creating user:', error);
       const errorMessage = error.response?.data?.message || error.response?.data?.error || 'No se pudo crear el usuario';
