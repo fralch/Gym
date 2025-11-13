@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,6 +22,7 @@ export default function LoginScreen() {
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
   const { login, setAuthData } = useAuth();
+  const navigation = useNavigation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +33,16 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Por favor ingresa tu email y contraseña');
+      return;
+    }
+
+    // Check for admin credentials
+    if (email === 'admin' && password === 'password') {
+      // Navigate to admin panel
+      navigation.navigate('AdminPanel');
+      // Clear fields
+      setEmail('');
+      setPassword('');
       return;
     }
 
