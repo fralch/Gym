@@ -10,7 +10,9 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { SPACING, TYPOGRAPHY } from '../constants';
@@ -39,6 +41,8 @@ export default function AdminPanelScreen() {
     fecha_fin: '',
     estado: 'Activa',
   });
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [selectedStartDate, setSelectedStartDate] = useState(new Date());
 
   useEffect(() => {
     if (activeTab === 'members') {
@@ -147,17 +151,18 @@ export default function AdminPanelScreen() {
 
   const handleCreateMembership = (member) => {
     const today = new Date();
-    const endDate = new Date(today);
-    endDate.setMonth(endDate.getMonth() + 1);
+    const startStr = today.toISOString().split('T')[0];
+    const endStr = computeEndDate(startStr, 'Mensual');
 
     setMembershipForm({
       id_membresia: null,
       id_usuario: member.id_usuario,
       tipo_plan: 'Mensual',
-      fecha_inicio: today.toISOString().split('T')[0],
-      fecha_fin: endDate.toISOString().split('T')[0],
+      fecha_inicio: startStr,
+      fecha_fin: endStr,
       estado: 'Activa',
     });
+    setSelectedStartDate(today);
     setSelectedMember(member);
     setShowMembershipModal(true);
   };
@@ -171,6 +176,7 @@ export default function AdminPanelScreen() {
       fecha_fin: membership.fecha_fin,
       estado: membership.estado,
     });
+    setSelectedStartDate(new Date(membership.fecha_inicio));
     setSelectedMember({ nombre: membership.memberName });
     setShowMembershipModal(true);
   };
@@ -237,6 +243,46 @@ export default function AdminPanelScreen() {
     const diffTime = endDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  const getMonthsForPlan = (plan) => {
+    switch (plan) {
+      case 'Mensual':
+        return 1;
+      case 'Trimestral':
+        return 3;
+      case 'Semestral':
+        return 6;
+      case 'Anual':
+        return 12;
+      default:
+        return 1;
+    }
+  };
+
+  const computeEndDate = (startDateStr, planType) => {
+    if (!startDateStr) return '';
+    const startDate = new Date(startDateStr);
+    const months = getMonthsForPlan(planType);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + months);
+    return endDate.toISOString().split('T')[0];
+  };
+
+  const formatDateDisplay = (dateString) => {
+    if (!dateString) return 'Seleccionar fecha';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  const onStartDateChange = (event, date) => {
+    setShowStartDatePicker(Platform.OS === 'ios');
+    if (date) {
+      setSelectedStartDate(date);
+      const startStr = date.toISOString().split('T')[0];
+      const endStr = computeEndDate(startStr, membershipForm.tipo_plan);
+      setMembershipForm({ ...membershipForm, fecha_inicio: startStr, fecha_fin: endStr });
+    }
   };
 
   const renderMemberCard = (member) => (
@@ -520,7 +566,10 @@ export default function AdminPanelScreen() {
                         backgroundColor: theme.primary,
                       },
                     ]}
-                    onPress={() => setMembershipForm({ ...membershipForm, tipo_plan: plan })}
+                    onPress={() => {
+                      const endStr = computeEndDate(membershipForm.fecha_inicio, plan);
+                      setMembershipForm({ ...membershipForm, tipo_plan: plan, fecha_fin: endStr });
+                    }}
                   >
                     <Text
                       style={[
@@ -538,23 +587,37 @@ export default function AdminPanelScreen() {
               </View>
 
               <Text style={styles.inputLabel}>Fecha de Inicio</Text>
-              <TextInput
-                style={styles.input}
-                value={membershipForm.fecha_inicio}
-                onChangeText={(text) =>
-                  setMembershipForm({ ...membershipForm, fecha_inicio: text })
-                }
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={theme.textSecondary}
-              />
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <MaterialIcons name="calendar-today" size={20} color={theme.textSecondary} />
+                <Text
+                  style={[
+                    styles.datePickerText,
+                    !membershipForm.fecha_inicio && styles.datePickerPlaceholder,
+                  ]}
+                >
+                  {formatDateDisplay(membershipForm.fecha_inicio)}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={24} color={theme.textSecondary} />
+              </TouchableOpacity>
+
+              {showStartDatePicker && (
+                <DateTimePicker
+                  value={selectedStartDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onStartDateChange}
+                  textColor={theme.textPrimary}
+                />
+              )}
 
               <Text style={styles.inputLabel}>Fecha de Fin</Text>
               <TextInput
                 style={styles.input}
                 value={membershipForm.fecha_fin}
-                onChangeText={(text) =>
-                  setMembershipForm({ ...membershipForm, fecha_fin: text })
-                }
+                editable={false}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={theme.textSecondary}
               />
@@ -818,6 +881,25 @@ const createStyles = (theme) =>
     planButtonText: {
       fontSize: TYPOGRAPHY.fontSize.sm,
       color: theme.textPrimary,
+    },
+    datePickerButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.background,
+      borderRadius: SPACING.borderRadius,
+      paddingHorizontal: SPACING.md,
+      paddingVertical: SPACING.md,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    datePickerText: {
+      flex: 1,
+      paddingHorizontal: SPACING.sm,
+      fontSize: TYPOGRAPHY.fontSize.md,
+      color: theme.textPrimary,
+    },
+    datePickerPlaceholder: {
+      color: theme.textSecondary,
     },
     saveButton: {
       marginTop: SPACING.xl,
