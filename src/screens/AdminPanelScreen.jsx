@@ -320,58 +320,66 @@ export default function AdminPanelScreen() {
     }
   };
 
-  const renderMemberCard = (member) => (
-    <View key={member.id_usuario} style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.memberInfo}>
-          <Text style={styles.memberName}>{member.nombre}</Text>
-          <Text style={styles.memberDni}>DNI: {member.dni}</Text>
-          <Text style={styles.memberDate}>
-            Registro: {new Date(member.fecha_registro).toLocaleDateString()}
-          </Text>
+  const renderMemberCard = (member) => {
+    const hasMembership = memberships.some((m) => m.id_usuario === member.id_usuario);
+    return (
+      <View key={member.id_usuario} style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.memberInfo}>
+            <Text style={styles.memberName}>{member.nombre}</Text>
+            <Text style={styles.memberDni}>DNI: {member.dni}</Text>
+            <Text style={styles.memberDate}>
+              Registro: {new Date(member.fecha_registro).toLocaleDateString()}
+            </Text>
+            {hasMembership && (
+              <Text style={[styles.memberDate, { color: theme.success, fontWeight: 'bold' }]}>
+                Ya es miembro
+              </Text>
+            )}
+          </View>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: member.estado === 'Activo' ? theme.success : theme.error },
+            ]}
+          >
+            <Text style={styles.statusText}>{member.estado}</Text>
+          </View>
         </View>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: member.estado === 'Activo' ? theme.success : theme.error },
-          ]}
-        >
-          <Text style={styles.statusText}>{member.estado}</Text>
+
+        <View style={styles.cardActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: theme.primary }]}
+            onPress={() => handleCreateMembership(member)}
+          >
+            <MaterialIcons name="card-membership" size={16} color={theme.textInverse} />
+            <Text style={styles.actionButtonText}>Membresía</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: theme.warning }]}
+            onPress={() => handleToggleMemberStatus(member)}
+          >
+            <MaterialIcons
+              name={member.estado === 'Activo' ? 'block' : 'check-circle'}
+              size={16}
+              color={theme.textInverse}
+            />
+            <Text style={styles.actionButtonText}>
+              {member.estado === 'Activo' ? 'Desactivar' : 'Activar'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: theme.error }]}
+            onPress={() => handleDeleteMember(member)}
+          >
+            <MaterialIcons name="delete" size={16} color={theme.textInverse} />
+          </TouchableOpacity>
         </View>
       </View>
-
-      <View style={styles.cardActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.primary }]}
-          onPress={() => handleCreateMembership(member)}
-        >
-          <MaterialIcons name="card-membership" size={16} color={theme.textInverse} />
-          <Text style={styles.actionButtonText}>Membresía</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.warning }]}
-          onPress={() => handleToggleMemberStatus(member)}
-        >
-          <MaterialIcons
-            name={member.estado === 'Activo' ? 'block' : 'check-circle'}
-            size={16}
-            color={theme.textInverse}
-          />
-          <Text style={styles.actionButtonText}>
-            {member.estado === 'Activo' ? 'Desactivar' : 'Activar'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.error }]}
-          onPress={() => handleDeleteMember(member)}
-        >
-          <MaterialIcons name="delete" size={16} color={theme.textInverse} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderMembershipCard = (membership) => {
     const daysRemaining = calculateDaysRemaining(membership.fecha_fin);
