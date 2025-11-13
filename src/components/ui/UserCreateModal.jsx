@@ -16,6 +16,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SPACING, TYPOGRAPHY } from '../../constants';
 import { useThemedStyles, useTheme } from '../../hooks/useTheme';
 import registroService from '../../services/registroService';
+import Button from './Button';
 
 export default function UserCreateModal({ visible, onClose, onSuccess }) {
   const { theme } = useTheme();
@@ -31,6 +32,8 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
     genero: '',
     telefono: '',
   });
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [createdUser, setCreatedUser] = useState(null);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -94,21 +97,8 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
       resetForm();
 
       // Show success message
-      Alert.alert(
-        'Éxito',
-        'Usuario creado exitosamente',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              if (onSuccess) {
-                onSuccess(response.data);
-              }
-              onClose();
-            }
-          }
-        ]
-      );
+      setCreatedUser(response.data);
+      setSuccessVisible(true);
     } catch (error) {
       console.error('Error creating user:', error);
       const errorMessage = error.response?.data?.message || error.response?.data?.error || 'No se pudo crear el usuario';
@@ -137,15 +127,24 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
     }
   };
 
+  const handleSuccessConfirm = () => {
+    if (onSuccess) {
+      onSuccess(createdUser);
+    }
+    setSuccessVisible(false);
+    onClose();
+  };
+
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={handleClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
+    <>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleClose}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Crear Nuevo Usuario</Text>
             <TouchableOpacity
@@ -301,30 +300,54 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
             <Text style={styles.requiredNote}>* Campos obligatorios</Text>
           </ScrollView>
 
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={handleClose}
-              disabled={loading}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleClose}
+                disabled={loading}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.button, styles.submitButton, loading && styles.submitButtonDisabled]}
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={theme.textInverse} />
-              ) : (
-                <Text style={styles.submitButtonText}>Crear Usuario</Text>
-              )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.submitButton, loading && styles.submitButtonDisabled]}
+                onPress={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={theme.textInverse} />
+                ) : (
+                  <Text style={styles.submitButtonText}>Crear Usuario</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+
+      <Modal
+        visible={successVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setSuccessVisible(false)}
+      >
+        <View style={styles.successOverlay}>
+          <View style={styles.successContainer}>
+            <View style={styles.successIconContainer}>
+              <MaterialIcons name="check-circle" size={48} color={theme.textInverse} />
+            </View>
+            <Text style={styles.successTitle}>Éxito</Text>
+            <Text style={styles.successSubtitle}>Usuario creado exitosamente</Text>
+            {createdUser?.nombre ? (
+              <Text style={styles.successDetail}>{createdUser.nombre}</Text>
+            ) : null}
+            <View style={styles.successActions}>
+              <Button title="OK" onPress={handleSuccessConfirm} style={styles.successButton} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -484,5 +507,56 @@ const createStyles = (theme) =>
       color: theme.textInverse,
       fontSize: TYPOGRAPHY.fontSize.md,
       fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    },
+    successOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    successContainer: {
+      width: '86%',
+      backgroundColor: theme.background,
+      borderRadius: 16,
+      paddingHorizontal: SPACING.lg,
+      paddingVertical: SPACING.lg,
+      alignItems: 'center',
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+    },
+    successIconContainer: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: theme.success,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: SPACING.md,
+    },
+    successTitle: {
+      fontSize: TYPOGRAPHY.fontSize.lg,
+      fontWeight: TYPOGRAPHY.fontWeight.bold,
+      color: theme.textPrimary,
+      marginBottom: SPACING.xs,
+    },
+    successSubtitle: {
+      fontSize: TYPOGRAPHY.fontSize.md,
+      color: theme.textSecondary,
+      marginBottom: SPACING.sm,
+      textAlign: 'center',
+    },
+    successDetail: {
+      fontSize: TYPOGRAPHY.fontSize.sm,
+      color: theme.textSecondary,
+      marginBottom: SPACING.lg,
+    },
+    successActions: {
+      width: '100%',
+    },
+    successButton: {
+      width: '100%',
     },
   });
