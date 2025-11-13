@@ -424,11 +424,11 @@ export default function AdminPanelScreen() {
         {/* Search Bar */}
         {activeTab === 'members' && (
           <View style={styles.searchContainer}>
-            <MaterialIcons name="search" size={20} color={theme.textSecondary} />
+            <MaterialIcons name="search" size={20} color="#FFFFFF" />
             <TextInput
               style={styles.searchInput}
               placeholder="Buscar por nombre o DNI..."
-              placeholderTextColor={theme.textSecondary}
+              placeholderTextColor="#FFFFFF"
               value={searchQuery}
               onChangeText={handleSearch}
             />
