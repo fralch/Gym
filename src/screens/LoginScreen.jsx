@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,6 +31,31 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
 
+  // Check for saved admin session on mount
+  useEffect(() => {
+    checkAdminSession();
+  }, []);
+
+  const checkAdminSession = async () => {
+    try {
+      const isAdmin = await AsyncStorage.getItem('is_admin');
+      if (isAdmin === 'true') {
+        // Auto-login admin and navigate to admin panel
+        navigation.navigate('AdminPanel');
+      }
+    } catch (error) {
+      console.error('Error checking admin session:', error);
+    }
+  };
+
+  const saveAdminSession = async () => {
+    try {
+      await AsyncStorage.setItem('is_admin', 'true');
+    } catch (error) {
+      console.error('Error saving admin session:', error);
+    }
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Por favor ingresa tu email y contraseña');
@@ -38,6 +64,8 @@ export default function LoginScreen() {
 
     // Check for admin credentials
     if (email === 'admin' && password === 'password') {
+      // Save admin session
+      await saveAdminSession();
       // Navigate to admin panel
       navigation.navigate('AdminPanel');
       // Clear fields

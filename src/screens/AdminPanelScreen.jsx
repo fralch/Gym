@@ -12,6 +12,7 @@ import {
   Modal,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -108,11 +109,45 @@ export default function AdminPanelScreen() {
     }
   }, [activeTab, searchQuery]);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadMembers(searchQuery);
+      loadMemberships();
+    });
+    return unsubscribe;
+  }, [navigation, searchQuery]);
+
   const handleSearch = (text) => {
     setSearchQuery(text);
     if (activeTab === 'members') {
       loadMembers(text);
     }
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro de que deseas cerrar sesión?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Cerrar Sesión',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem('is_admin');
+              navigation.navigate('QrScanner');
+            } catch (error) {
+              console.error('Error logging out:', error);
+              Alert.alert('Error', 'No se pudo cerrar la sesión');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleDeleteMember = (member) => {
@@ -418,7 +453,9 @@ export default function AdminPanelScreen() {
             <MaterialIcons name="arrow-back" size={24} color={theme.textInverse} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Panel de Administración</Text>
-          <View style={{ width: 40 }} />
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <MaterialIcons name="logout" size={24} color={theme.textInverse} />
+          </TouchableOpacity>
         </View>
 
         {/* Search Bar */}
@@ -685,6 +722,9 @@ const createStyles = (theme) =>
       marginBottom: SPACING.md,
     },
     backButton: {
+      padding: SPACING.sm,
+    },
+    logoutButton: {
       padding: SPACING.sm,
     },
     headerTitle: {
