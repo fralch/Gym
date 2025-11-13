@@ -88,6 +88,32 @@ class MiembrosService {
       throw error;
     }
   }
+
+  async hasPhotoByDni(dni) {
+    try {
+      const response = await api.get(`/gimnasio/usuario-tiene-foto/${dni}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error checking user photo:', error.response?.data || error.message);
+      throw error;
+    }
+  }
+
+  async uploadProfilePhoto(id_usuario, formData) {
+    try {
+      const response = await api.post(
+        `/gimnasio/miembros/${id_usuario}/foto-perfil`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading profile photo:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 }
 
 export default new MiembrosService();

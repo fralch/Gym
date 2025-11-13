@@ -15,6 +15,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
@@ -44,6 +45,7 @@ export default function AdminPanelScreen() {
   });
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState(new Date());
+  const [photoStatus, setPhotoStatus] = useState({});
 
   useEffect(() => {
     if (activeTab === 'members') {
@@ -59,6 +61,7 @@ export default function AdminPanelScreen() {
       const response = await miembrosService.getAll(search);
       if (response.success) {
         setMembers(response.data);
+        await checkMembersPhotos(response.data);
       }
     } catch (error) {
       Alert.alert('Error', 'No se pudo cargar la lista de miembros');
@@ -322,6 +325,7 @@ export default function AdminPanelScreen() {
 
   const renderMemberCard = (member) => {
     const hasMembership = memberships.some((m) => m.id_usuario === member.id_usuario);
+    const tieneFoto = photoStatus[member.id_usuario]?.tiene_foto;
     return (
       <View key={member.id_usuario} style={styles.card}>
         <View style={styles.cardHeader}>
@@ -378,6 +382,13 @@ export default function AdminPanelScreen() {
             <MaterialIcons name="delete" size={16} color={theme.textInverse} />
           </TouchableOpacity>
         </View>
+
+        {Platform.OS === 'android' && tieneFoto !== true && (
+          <TouchableOpacity style={[styles.bigUploadButton, { backgroundColor: theme.primary }]} onPress={() => handleUploadPhoto(member)}>
+            <MaterialIcons name="upload" size={18} color={theme.textInverse} />
+            <Text style={styles.bigUploadButtonText}>Subir Foto de Perfil</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -962,4 +973,82 @@ const createStyles = (theme) =>
       fontWeight: TYPOGRAPHY.fontWeight.semiBold,
       color: theme.textInverse,
     },
+    bigUploadButton: {
+      marginTop: SPACING.sm,
+      paddingVertical: SPACING.md,
+      borderRadius: SPACING.borderRadius,
+      alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: SPACING.xs,
+    },
+    bigUploadButtonText: {
+      fontSize: TYPOGRAPHY.fontSize.md,
+      color: theme.textInverse,
+      fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    },
   });
+  const checkMembersPhotos = async (list) => {
+    try {
+      const results = await Promise.all(
+        list.map(async (m) => {
+          try {
+            const r = await miembrosService.hasPhotoByDni(m.dni);
+            return { id_usuario: m.id_usuario, tiene_foto: !!r?.tiene_foto, foto_url: r?.foto_perfil?.url || null };
+          } catch {
+            return { id_usuario: m.id_usuario, tiene_foto: false, foto_url: null };
+          }
+        })
+      );
+      const map = {};
+      results.forEach((item) => {
+        map[item.id_usuario] = item;
+      });
+      setPhotoStatus(map);
+    } catch {}
+  };
+
+  const handleUploadPhoto = async (member) => {
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Permiso requerido', 'Habilita el acceso a la cámara para tomar la foto');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        cameraType: ImagePicker.CameraType.back,
+        quality: 0.8,
+      });
+      if (!result || result.canceled) return;
+      const asset = result.assets && result.assets.length > 0 ? result.assets[0] : null;
+      if (!asset) return;
+
+      const formData = new FormData();
+      formData.append('foto', {
+        uri: asset.uri,
+        name: asset.fileName || `miembro_${member.id_usuario}_${Date.now()}.jpg`,
+        type: asset.mimeType || 'image/jpeg',
+      });
+
+      setLoading(true);
+      const response = await miembrosService.uploadProfilePhoto(member.id_usuario, formData);
+      if (response?.success) {
+        Alert.alert('Éxito', 'Foto de perfil actualizada');
+        try {
+          const r = await miembrosService.hasPhotoByDni(member.dni);
+          setPhotoStatus((prev) => ({
+            ...prev,
+            [member.id_usuario]: { id_usuario: member.id_usuario, tiene_foto: !!r?.tiene_foto, foto_url: r?.foto_perfil?.url || null },
+          }));
+        } catch {}
+      } else {
+        Alert.alert('Error', 'No se pudo subir la foto');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo subir la foto');
+    } finally {
+      setLoading(false);
+    }
+  };
