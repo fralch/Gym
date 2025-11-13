@@ -349,11 +349,12 @@ export default function AdminPanelScreen() {
 
         <View style={styles.cardActions}>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: theme.primary }]}
+            style={[styles.actionButton, { backgroundColor: hasMembership ? theme.border : theme.primary }]}
             onPress={() => handleCreateMembership(member)}
+            disabled={hasMembership}
           >
-            <MaterialIcons name="card-membership" size={16} color={theme.textInverse} />
-            <Text style={styles.actionButtonText}>Membresía</Text>
+            <MaterialIcons name="card-membership" size={16} color={hasMembership ? theme.textSecondary : theme.textInverse} />
+            <Text style={[styles.actionButtonText, hasMembership && { color: theme.textSecondary }]}>Membresía</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
