@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, StatusBar, Alert, ActivityIndicator, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, StatusBar, Alert, ActivityIndicator, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
 import { Camera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, TYPOGRAPHY } from '../constants';
 import {
   PermissionsRequest,
@@ -17,6 +18,8 @@ export default function QrScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [dniInput, setDniInput] = useState('');
   const [showDniInput, setShowDniInput] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState(null); // { url, nombre }
   const navigation = useNavigation();
   const { user } = useAuth();
   const { dni, setDni, hasDni } = useUser();
@@ -73,9 +76,25 @@ export default function QrScreen() {
     try {
       await setDni(dniInput.trim());
       setShowDniInput(false);
-      Alert.alert('DNI Guardado', 'Tu DNI ha sido guardado correctamente.');
+      setShowSuccessModal(true);
     } catch (error) {
       Alert.alert('Error', 'No se pudo guardar el DNI. Intenta de nuevo.');
+    }
+  };
+
+  const handleCloseFullscreenImage = () => {
+    const imageData = fullscreenImage;
+    setFullscreenImage(null);
+    setScanned(false);
+    setIsProcessing(false);
+
+    // Show success alert after closing the image
+    if (imageData) {
+      Alert.alert(
+        '¡Asistencia Registrada!',
+        `${imageData.mensaje}\nHora: ${imageData.hora}`,
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -98,23 +117,37 @@ export default function QrScreen() {
       // Call the check-in API with the user's DNI
       const response = await checkinService.marcarAsistencia(dni);
 
-      // Success - show confirmation
+      // Extract member data from response
+      const memberData = response.data?.miembro || response.miembro;
+      const fotoPerfil = memberData?.foto_perfil;
+      const nombreMiembro = memberData?.nombre;
       const mensaje = response.mensaje || 'Asistencia registrada exitosamente';
-      const hora = response.hora || new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      const hora = response.hora || response.data?.hora_entrada || new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-      Alert.alert(
-        '¡Asistencia Registrada!',
-        `${mensaje}\nHora: ${hora}`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setScanned(false);
-              setIsProcessing(false);
+      // Show fullscreen image if available
+      if (fotoPerfil) {
+        setFullscreenImage({
+          url: fotoPerfil,
+          nombre: nombreMiembro,
+          mensaje,
+          hora
+        });
+      } else {
+        // No image available, show alert directly
+        Alert.alert(
+          '¡Asistencia Registrada!',
+          `${mensaje}\nHora: ${hora}`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setScanned(false);
+                setIsProcessing(false);
+              }
             }
-          }
-        ]
-      );
+          ]
+        );
+      }
     } catch (error) {
       // Handle errors
       setScanned(false);
@@ -210,6 +243,78 @@ export default function QrScreen() {
           </View>
         </KeyboardAvoidingView>
       )}
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.successIconContainer}>
+              <MaterialIcons name="check-circle" size={64} color={COLORS.primary} />
+            </View>
+            <Text style={styles.successTitle}>¡DNI Guardado!</Text>
+            <Text style={styles.successMessage}>
+              Tu DNI ha sido guardado correctamente.
+              Ahora puedes escanear el código QR.
+            </Text>
+            <TouchableOpacity
+              style={styles.successButton}
+              onPress={() => setShowSuccessModal(false)}
+            >
+              <Text style={styles.successButtonText}>Continuar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Fullscreen Image Modal */}
+      <Modal
+        visible={!!fullscreenImage}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={handleCloseFullscreenImage}
+      >
+        <View style={styles.fullscreenContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="black" />
+
+          {/* Close Button */}
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={handleCloseFullscreenImage}
+          >
+            <MaterialIcons name="close" size={32} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {/* Member Name */}
+          {fullscreenImage?.nombre && (
+            <View style={styles.memberNameContainer}>
+              <Text style={styles.memberName}>{fullscreenImage.nombre}</Text>
+            </View>
+          )}
+
+          {/* Profile Image */}
+          {fullscreenImage?.url && (
+            <Image
+              source={{ uri: fullscreenImage.url }}
+              style={styles.fullscreenImage}
+              resizeMode="contain"
+            />
+          )}
+
+          {/* Tap to close hint */}
+          <TouchableOpacity
+            style={styles.tapToCloseHint}
+            onPress={handleCloseFullscreenImage}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.tapToCloseText}>Toca para continuar</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -287,5 +392,113 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textSecondary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.lg,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    padding: SPACING.xl,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  successIconContainer: {
+    marginBottom: SPACING.lg,
+  },
+  successTitle: {
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+    lineHeight: 22,
+  },
+  successButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    width: '100%',
+    alignItems: 'center',
+  },
+  successButtonText: {
+    color: '#FFFFFF',
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+  },
+  fullscreenContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: SPACING.sm,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  memberNameContainer: {
+    position: 'absolute',
+    top: 100,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 5,
+    paddingHorizontal: SPACING.xl,
+  },
+  memberName: {
+    fontSize: TYPOGRAPHY.fontSize.xxl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  fullscreenImage: {
+    width: '100%',
+    height: '100%',
+  },
+  tapToCloseHint: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+  },
+  tapToCloseText: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });
