@@ -57,22 +57,42 @@ const createStyles = (theme) => StyleSheet.create({
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingHorizontal: SPACING.lg,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  headerImageWrapper: {
+    marginRight: SPACING.md,
+  },
+  headerImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  headerPlaceholder: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTexts: {
     flex: 1,
     marginRight: SPACING.md,
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   modalSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
   },
   headerRight: {
@@ -90,31 +110,7 @@ const createStyles = (theme) => StyleSheet.create({
   },
   detailContainer: {
     paddingBottom: SPACING.xl,
-  },
-  imageSection: {
-    alignItems: 'center',
-    marginTop: -50,
-    marginBottom: SPACING.lg,
-    zIndex: 10,
-  },
-  imageWrapper: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  detailImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: theme.cardBackground,
-  },
-  placeholderImage: {
-    backgroundColor: theme.background,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: SPACING.md,
   },
   statusPill: {
     paddingHorizontal: 12,
@@ -254,9 +250,24 @@ export default function MemberDetailModal({
             style={styles.headerGradient}
           >
             <View style={styles.modalHeader}>
-              <View style={styles.headerTexts}>
-                <Text style={styles.modalTitle}>{member.nombre}</Text>
-                <Text style={styles.modalSubtitle}>DNI {member.dni}</Text>
+              <View style={styles.headerLeft}>
+                <View style={styles.headerImageWrapper}>
+                  {photoUrl ? (
+                    <Image 
+                      source={{ uri: photoUrl }} 
+                      style={styles.headerImage} 
+                      resizeMode="cover" 
+                    />
+                  ) : (
+                    <View style={[styles.headerImage, styles.headerPlaceholder]}>
+                      <MaterialIcons name="person" size={32} color="#FFFFFF" />
+                    </View>
+                  )}
+                </View>
+                <View style={styles.headerTexts}>
+                  <Text style={styles.modalTitle}>{member.nombre}</Text>
+                  <Text style={styles.modalSubtitle}>DNI {member.dni}</Text>
+                </View>
               </View>
               <View style={styles.headerRight}>
                 <View
@@ -282,18 +293,6 @@ export default function MemberDetailModal({
             contentContainerStyle={styles.detailContainer}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.imageSection}>
-              <View style={styles.imageWrapper}>
-                {photoUrl ? (
-                  <Image source={{ uri: photoUrl }} style={styles.detailImage} resizeMode="cover" />
-                ) : (
-                  <View style={[styles.detailImage, styles.placeholderImage]}>
-                    <MaterialIcons name="person" size={60} color={theme.textSecondary} />
-                  </View>
-                )}
-              </View>
-            </View>
-
             <View style={styles.detailInfo}>
               <View style={styles.infoCard}>
                 <View style={styles.detailRow}>
