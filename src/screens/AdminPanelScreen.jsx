@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   Platform,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -21,6 +22,7 @@ import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import miembrosService from '../services/miembrosService';
 import membresiasService from '../services/membresiasService';
+import MemberDetailModal from '../components/ui/MemberDetailModal';
 
 export default function AdminPanelScreen() {
   const { theme } = useTheme();
@@ -46,6 +48,8 @@ export default function AdminPanelScreen() {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState(new Date());
   const [photoStatus, setPhotoStatus] = useState({});
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailMember, setDetailMember] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'members') {
@@ -323,12 +327,25 @@ export default function AdminPanelScreen() {
     }
   };
 
+  const handleShowDetail = async (member) => {
+    setDetailMember(member);
+    setShowDetailModal(true);
+    try {
+      const response = await miembrosService.getById(member.id_usuario);
+      if (response.success && response.data) {
+        setDetailMember((prev) => ({ ...prev, ...response.data }));
+      }
+    } catch (error) {
+      console.log('Error fetching member details:', error);
+    }
+  };
+
   const renderMemberCard = (member) => {
     const hasMembership = memberships.some((m) => m.id_usuario === member.id_usuario);
     const tieneFoto = photoStatus[member.id_usuario]?.tiene_foto;
     return (
       <View key={member.id_usuario} style={styles.card}>
-        <View style={styles.cardHeader}>
+        <TouchableOpacity style={styles.cardHeader} onPress={() => handleShowDetail(member)}>
           <View style={styles.memberInfo}>
             <Text style={styles.memberName}>{member.nombre}</Text>
             <Text style={styles.memberDni}>DNI: {member.dni}</Text>
@@ -349,7 +366,7 @@ export default function AdminPanelScreen() {
           >
             <Text style={styles.statusText}>{member.estado}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.cardActions}>
           <TouchableOpacity
@@ -461,6 +478,105 @@ export default function AdminPanelScreen() {
           </TouchableOpacity>
         </View>
       </View>
+    );
+  };
+
+  const renderDetailModal = () => {
+    if (!detailMember) return null;
+
+    const photoUrl = photoStatus[detailMember.id_usuario]?.foto_url || detailMember.foto_perfil;
+    const userMembership = memberships.find((m) => m.id_usuario === detailMember.id_usuario);
+
+    return (
+      <Modal
+        visible={showDetailModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDetailModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Detalle del Miembro</Text>
+              <TouchableOpacity onPress={() => setShowDetailModal(false)}>
+                <MaterialIcons name="close" size={24} color={theme.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.detailContainer}>
+              <View style={styles.imageContainer}>
+                {photoUrl ? (
+                  <Image source={{ uri: photoUrl }} style={styles.detailImage} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.detailImage, styles.placeholderImage]}>
+                    <MaterialIcons name="person" size={80} color={theme.textSecondary} />
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailLabel}>Nombre:</Text>
+                <Text style={styles.detailValue}>{detailMember.nombre}</Text>
+
+                <Text style={styles.detailLabel}>DNI:</Text>
+                <Text style={styles.detailValue}>{detailMember.dni}</Text>
+
+                {detailMember.telefono && (
+                  <>
+                    <Text style={styles.detailLabel}>Teléfono:</Text>
+                    <Text style={styles.detailValue}>{detailMember.telefono}</Text>
+                  </>
+                )}
+
+                {detailMember.fecha_nacimiento && (
+                  <>
+                    <Text style={styles.detailLabel}>Fecha de Nacimiento:</Text>
+                    <Text style={styles.detailValue}>
+                      {new Date(detailMember.fecha_nacimiento).toLocaleDateString()}
+                    </Text>
+                  </>
+                )}
+
+                {detailMember.genero && (
+                  <>
+                    <Text style={styles.detailLabel}>Género:</Text>
+                    <Text style={styles.detailValue}>{detailMember.genero}</Text>
+                  </>
+                )}
+
+                <Text style={styles.detailLabel}>Fecha de Registro:</Text>
+                <Text style={styles.detailValue}>
+                  {new Date(detailMember.fecha_registro).toLocaleDateString()}
+                </Text>
+
+                <Text style={styles.detailLabel}>Estado:</Text>
+                <Text
+                  style={[
+                    styles.detailValue,
+                    {
+                      color: detailMember.estado === 'Activo' ? theme.success : theme.error,
+                      fontWeight: 'bold',
+                    },
+                  ]}
+                >
+                  {detailMember.estado}
+                </Text>
+
+                {userMembership && (
+                  <View style={styles.membershipDetail}>
+                    <Text style={styles.sectionTitle}>Membresía Actual</Text>
+                    <Text style={styles.detailLabel}>Plan: {userMembership.tipo_plan}</Text>
+                    <Text style={styles.detailLabel}>Estado: {userMembership.estado}</Text>
+                    <Text style={styles.detailLabel}>
+                      Vence: {new Date(userMembership.fecha_fin).toLocaleDateString()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     );
   };
 
@@ -817,9 +933,17 @@ export default function AdminPanelScreen() {
           </View>
         </View>
       </Modal>
+
+      <MemberDetailModal
+        visible={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        member={detailMember}
+        photoUrl={detailMember ? (photoStatus[detailMember.id_usuario]?.foto_url || detailMember.foto_perfil) : null}
+        membership={detailMember ? memberships.find((m) => m.id_usuario === detailMember.id_usuario) : null}
+      />
     </View>
   );
-}
+};
 
 const createStyles = (theme) =>
   StyleSheet.create({
