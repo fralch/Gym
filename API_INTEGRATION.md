@@ -565,7 +565,11 @@ Crea un registro de asistencia manualmente.
     "id_asistencia": 1,
     "id_usuario": 1,
     "fecha_asistencia": "2025-01-15",
-    "hora_entrada": "08:30:00"
+    "hora_entrada": "08:30:00",
+    "miembro": {
+      "nombre": "Juan Pérez",
+      "foto_perfil": "http://localhost/storage/gimnasio/fotos_perfil/miembro_1_1699999999.jpg"
+    }
   }
 }
 ```
