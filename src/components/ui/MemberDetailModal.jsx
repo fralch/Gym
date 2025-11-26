@@ -9,223 +9,209 @@ import {
   StyleSheet,
   Pressable,
   Linking,
-  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-// Si puedes, usa LinearGradient para la tarjeta de membresía, se ve mucho mejor.
-// Si no, cambia LinearGradient por View en el renderizado.
-import { LinearGradient } from 'expo-linear-gradient'; 
 import { useTheme, useThemedStyles } from '../../hooks/useTheme';
 import { SPACING, TYPOGRAPHY } from '../../constants';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const createStyles = (theme) => StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)', // Oscurecer un poco más para foco
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'flex-end',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   modalContent: {
-    backgroundColor: theme.background, // Usar background general, no card
-    borderTopLeftRadius: 30, // Más redondeado
-    borderTopRightRadius: 30,
-    height: '85%', // Un poco más alto
-    elevation: 20,
+    backgroundColor: theme.cardBackground,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%',
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
   },
-  // La pequeña barra gris para indicar que se puede deslizar
   dragHandle: {
     width: 40,
     height: 4,
     backgroundColor: theme.border,
     borderRadius: 2,
     alignSelf: 'center',
-    marginTop: SPACING.sm,
-    marginBottom: SPACING.xs,
+    marginTop: 12,
+    marginBottom: 8,
   },
-  headerSection: {
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
+  headerGradient: {
+    paddingTop: SPACING.md,
     paddingBottom: SPACING.lg,
-    backgroundColor: theme.cardBackground, // Diferenciar cabecera del cuerpo
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    zIndex: 1,
-    // Sombra suave para separar la cabecera del scroll
-    shadowColor: theme.cardShadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 4,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
-  closeButtonAbs: {
-    position: 'absolute',
-    top: SPACING.md,
-    right: SPACING.md,
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: SPACING.lg,
+  },
+  headerTexts: {
+    flex: 1,
+    marginRight: SPACING.md,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: '500',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailContainer: {
+    paddingBottom: SPACING.xl,
+  },
+  imageSection: {
+    alignItems: 'center',
+    marginTop: -50,
+    marginBottom: SPACING.lg,
     zIndex: 10,
-    padding: SPACING.xs,
-    backgroundColor: theme.background,
-    borderRadius: 20,
   },
-  imageContainer: {
-    marginTop: SPACING.md,
-    marginBottom: SPACING.md,
-    shadowColor: theme.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+  imageWrapper: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   detailImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: theme.cardBackground, // Borde blanco/oscuro para separar del fondo
+    borderColor: theme.cardBackground,
   },
   placeholderImage: {
-    backgroundColor: theme.border,
+    backgroundColor: theme.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nameText: {
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: '800', // Más grueso
-    color: theme.textPrimary,
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  dniText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: theme.textSecondary,
-    marginBottom: SPACING.md,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.background,
-    paddingHorizontal: SPACING.md,
+  statusPill: {
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: theme.border,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  statusText: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: '700',
-    color: theme.textPrimary,
-    textTransform: 'uppercase',
+  statusPillText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
-  
-  // Cuerpo del scroll
-  scrollContent: {
-    paddingTop: SPACING.xl,
+  detailInfo: {
     paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.xl * 2,
   },
-  
-  // Grupos de información (Tarjetas)
-  infoGroup: {
-    backgroundColor: theme.cardBackground,
-    borderRadius: SPACING.borderRadius,
+  infoCard: {
+    backgroundColor: theme.background,
+    borderRadius: 16,
     padding: SPACING.md,
-    marginBottom: SPACING.lg,
-    borderWidth: 1,
-    borderColor: theme.border, // Borde muy sutil
-  },
-  groupTitle: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: '700',
-    color: theme.textSecondary,
     marginBottom: SPACING.md,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
-  infoRow: {
+  detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.md,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
   },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: theme.background, // Fondo suave para el icono
+  detailRowLast: {
+    borderBottomWidth: 0,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SPACING.md,
   },
-  infoContent: {
+  detailRowText: {
     flex: 1,
   },
-  infoLabel: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
+  detailLabel: {
+    fontSize: 12,
     color: theme.textSecondary,
     marginBottom: 2,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  infoValue: {
-    fontSize: TYPOGRAPHY.fontSize.md,
+  detailValue: {
+    fontSize: 15,
     color: theme.textPrimary,
     fontWeight: '600',
   },
-
-  // Tarjeta de Membresía (Estilo Tarjeta de Crédito)
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    marginTop: SPACING.sm,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.textPrimary,
+    marginLeft: SPACING.sm,
+  },
   membershipCard: {
+    backgroundColor: theme.primary + '10',
     borderRadius: 16,
     padding: SPACING.lg,
-    marginTop: SPACING.sm,
-    elevation: 8,
-    shadowColor: theme.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    marginTop: SPACING.md,
+    borderWidth: 1,
+    borderColor: theme.primary + '30',
   },
-  cardHeader: {
+  membershipBadge: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: SPACING.xl,
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.primary + '20',
   },
-  cardLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  membershipTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.primary,
+    marginLeft: SPACING.sm,
   },
-  planText: {
-    color: '#FFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  cardValue: {
-    color: '#FFF',
-    fontSize: TYPOGRAPHY.fontSize.md,
-    fontWeight: '600',
-  },
-  statusBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  phoneRow: {
+    backgroundColor: theme.primary + '08',
   },
 });
 
@@ -241,8 +227,13 @@ export default function MemberDetailModal({
 
   if (!member) return null;
 
-  const isActive = member.estado === 'Activo';
-  const statusColor = isActive ? theme.success : theme.error;
+  const getStatusColor = (status) => {
+    return status === 'Activo' ? '#10B981' : '#EF4444';
+  };
+
+  const getGradientColors = () => {
+    return [theme.primary, theme.primary + 'DD'];
+  };
 
   return (
     <Modal
@@ -250,159 +241,190 @@ export default function MemberDetailModal({
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
-      statusBarTranslucent
     >
       <View style={styles.modalOverlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
-        
         <View style={styles.modalContent}>
-          {/* Barra de arrastre visual */}
           <View style={styles.dragHandle} />
-
-          {/* Botón Cerrar Flotante */}
-          <TouchableOpacity 
-            style={styles.closeButtonAbs} 
-            onPress={onClose}
-            hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+          
+          <LinearGradient
+            colors={getGradientColors()}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.headerGradient}
           >
-            <MaterialIcons name="close" size={20} color={theme.textSecondary} />
-          </TouchableOpacity>
-
-          {/* HEADER SECTION: Foto y Datos principales */}
-          <View style={styles.headerSection}>
-            <View style={styles.imageContainer}>
-              {photoUrl ? (
-                <Image source={{ uri: photoUrl }} style={styles.detailImage} resizeMode="cover" />
-              ) : (
-                <View style={[styles.detailImage, styles.placeholderImage]}>
-                  <MaterialIcons name="person" size={60} color={theme.textSecondary} />
+            <View style={styles.modalHeader}>
+              <View style={styles.headerTexts}>
+                <Text style={styles.modalTitle}>{member.nombre}</Text>
+                <Text style={styles.modalSubtitle}>DNI {member.dni}</Text>
+              </View>
+              <View style={styles.headerRight}>
+                <View
+                  style={[
+                    styles.statusPill,
+                    { backgroundColor: getStatusColor(member.estado) },
+                  ]}
+                >
+                  <Text style={styles.statusPillText}>{member.estado}</Text>
                 </View>
-              )}
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={onClose}
+                  activeOpacity={0.7}
+                >
+                  <MaterialIcons name="close" size={22} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
+          </LinearGradient>
 
-            <Text style={styles.nameText}>{member.nombre}</Text>
-            <Text style={styles.dniText}>DNI {member.dni}</Text>
-
-            <View style={[styles.statusContainer, { borderColor: statusColor }]}>
-              <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-              <Text style={[styles.statusText, { color: statusColor }]}>{member.estado}</Text>
-            </View>
-          </View>
-
-          {/* BODY: Scroll de detalles */}
           <ScrollView 
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={styles.detailContainer}
             showsVerticalScrollIndicator={false}
           >
-            
-            {/* SECCIÓN 1: Datos Personales agrupados */}
-            <View style={styles.infoGroup}>
-              <Text style={styles.groupTitle}>Información Personal</Text>
-              
-              {/* Reusable Row Component logic */}
-              <InfoRow 
-                icon="phone" 
-                label="Teléfono" 
-                value={member.telefono} 
-                theme={theme}
-                styles={styles}
-                isLink={true}
-              />
-              <InfoRow 
-                icon="cake" 
-                label="Fecha de Nacimiento" 
-                value={member.fecha_nacimiento ? new Date(member.fecha_nacimiento).toLocaleDateString('es-ES') : null} 
-                theme={theme}
-                styles={styles}
-              />
-               <InfoRow 
-                icon="wc" 
-                label="Género" 
-                value={member.genero} 
-                theme={theme}
-                styles={styles}
-                last
-              />
+            <View style={styles.imageSection}>
+              <View style={styles.imageWrapper}>
+                {photoUrl ? (
+                  <Image source={{ uri: photoUrl }} style={styles.detailImage} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.detailImage, styles.placeholderImage]}>
+                    <MaterialIcons name="person" size={60} color={theme.textSecondary} />
+                  </View>
+                )}
+              </View>
             </View>
 
-             <View style={styles.infoGroup}>
-                <Text style={styles.groupTitle}>Datos de Registro</Text>
-                 <InfoRow 
-                  icon="event-available" 
-                  label="Miembro desde" 
-                  value={new Date(member.fecha_registro).toLocaleDateString('es-ES')} 
-                  theme={theme}
-                  styles={styles}
-                  last
-                />
-             </View>
-
-            {/* SECCIÓN 2: Membresía (Diseño Premium) */}
-            {membership && (
-              <View>
-                <Text style={[styles.groupTitle, { marginLeft: SPACING.xs }]}>Membresía</Text>
-                {/* Si NO tienes expo-linear-gradient, cambia <LinearGradient> por <View style={[styles.membershipCard, {backgroundColor: theme.primary}]}> 
-                */}
-                <LinearGradient
-                  colors={[theme.primary, theme.secondary || '#4a90e2']} // Gradiente del color primario a uno secundario
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.membershipCard}
-                >
-                  <View style={styles.cardHeader}>
-                    <View>
-                      <Text style={styles.cardLabel}>PLAN ACTUAL</Text>
-                      <Text style={styles.planText}>{membership.tipo_plan}</Text>
-                    </View>
-                    <MaterialIcons name="verified" size={24} color="rgba(255,255,255,0.8)" />
+            <View style={styles.detailInfo}>
+              <View style={styles.infoCard}>
+                <View style={styles.detailRow}>
+                  <View style={styles.iconContainer}>
+                    <MaterialIcons name="person" size={20} color={theme.primary} />
                   </View>
+                  <View style={styles.detailRowText}>
+                    <Text style={styles.detailLabel}>Nombre Completo</Text>
+                    <Text style={styles.detailValue}>{member.nombre}</Text>
+                  </View>
+                </View>
 
-                  <View style={styles.cardFooter}>
-                    <View>
-                      <Text style={styles.cardLabel}>VENCIMIENTO</Text>
-                      <Text style={styles.cardValue}>
-                        {new Date(membership.fecha_fin).toLocaleDateString('es-ES')}
+                <View style={styles.detailRow}>
+                  <View style={styles.iconContainer}>
+                    <MaterialIcons name="badge" size={20} color={theme.primary} />
+                  </View>
+                  <View style={styles.detailRowText}>
+                    <Text style={styles.detailLabel}>Documento de Identidad</Text>
+                    <Text style={styles.detailValue}>{member.dni}</Text>
+                  </View>
+                </View>
+
+                {member.telefono && (
+                  <TouchableOpacity
+                    onPress={() => Linking.openURL(`tel:${member.telefono}`)}
+                    style={[styles.detailRow, styles.phoneRow]}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.iconContainer}>
+                      <MaterialIcons name="phone" size={20} color={theme.primary} />
+                    </View>
+                    <View style={styles.detailRowText}>
+                      <Text style={styles.detailLabel}>Teléfono</Text>
+                      <Text style={styles.detailValue}>{member.telefono}</Text>
+                    </View>
+                    <MaterialIcons name="call" size={18} color={theme.primary} />
+                  </TouchableOpacity>
+                )}
+
+                {member.fecha_nacimiento && (
+                  <View style={styles.detailRow}>
+                    <View style={styles.iconContainer}>
+                      <MaterialIcons name="cake" size={20} color={theme.primary} />
+                    </View>
+                    <View style={styles.detailRowText}>
+                      <Text style={styles.detailLabel}>Fecha de Nacimiento</Text>
+                      <Text style={styles.detailValue}>
+                        {new Date(member.fecha_nacimiento).toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
                       </Text>
                     </View>
-                    <View style={styles.statusBadge}>
-                       <Text style={[styles.cardValue, { fontSize: 12 }]}>{membership.estado}</Text>
+                  </View>
+                )}
+
+                {member.genero && (
+                  <View style={styles.detailRow}>
+                    <View style={styles.iconContainer}>
+                      <MaterialIcons name="wc" size={20} color={theme.primary} />
+                    </View>
+                    <View style={styles.detailRowText}>
+                      <Text style={styles.detailLabel}>Género</Text>
+                      <Text style={styles.detailValue}>{member.genero}</Text>
                     </View>
                   </View>
-                </LinearGradient>
-              </View>
-            )}
+                )}
 
+                <View style={[styles.detailRow, styles.detailRowLast]}>
+                  <View style={styles.iconContainer}>
+                    <MaterialIcons name="event-available" size={20} color={theme.primary} />
+                  </View>
+                  <View style={styles.detailRowText}>
+                    <Text style={styles.detailLabel}>Miembro Desde</Text>
+                    <Text style={styles.detailValue}>
+                      {new Date(member.fecha_registro).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {membership && (
+                <>
+                  <View style={styles.sectionHeader}>
+                    <MaterialIcons name="stars" size={22} color={theme.primary} />
+                    <Text style={styles.sectionTitle}>Información de Membresía</Text>
+                  </View>
+                  
+                  <View style={styles.membershipCard}>
+                    <View style={styles.membershipBadge}>
+                      <MaterialIcons name="card-membership" size={24} color={theme.primary} />
+                      <Text style={styles.membershipTitle}>{membership.tipo_plan}</Text>
+                    </View>
+                    
+                    <View style={styles.detailRow}>
+                      <View style={styles.iconContainer}>
+                        <MaterialIcons name="check-circle" size={20} color={theme.primary} />
+                      </View>
+                      <View style={styles.detailRowText}>
+                        <Text style={styles.detailLabel}>Estado del Plan</Text>
+                        <Text style={styles.detailValue}>{membership.estado}</Text>
+                      </View>
+                    </View>
+                    
+                    <View style={[styles.detailRow, styles.detailRowLast]}>
+                      <View style={styles.iconContainer}>
+                        <MaterialIcons name="event" size={20} color={theme.primary} />
+                      </View>
+                      <View style={styles.detailRowText}>
+                        <Text style={styles.detailLabel}>Fecha de Vencimiento</Text>
+                        <Text style={styles.detailValue}>
+                          {new Date(membership.fecha_fin).toLocaleDateString('es-ES', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              )}
+            </View>
           </ScrollView>
         </View>
       </View>
     </Modal>
   );
 }
-
-// Componente auxiliar para filas limpias
-const InfoRow = ({ icon, label, value, theme, styles, isLink, last }) => {
-  if (!value) return null;
-  
-  const Content = (
-    <View style={[styles.infoRow, last && { marginBottom: 0 }]}>
-      <View style={styles.iconBox}>
-        <MaterialIcons name={icon} size={20} color={theme.primary} />
-      </View>
-      <View style={styles.infoContent}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
-      </View>
-      {isLink && <MaterialIcons name="chevron-right" size={20} color={theme.border} />}
-    </View>
-  );
-
-  if (isLink) {
-    return (
-      <TouchableOpacity onPress={() => Linking.openURL(`tel:${value}`)}>
-        {Content}
-      </TouchableOpacity>
-    );
-  }
-
-  return Content;
-};
