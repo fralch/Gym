@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
   },
   dniContainer: {
-    backgroundColor: COLORS.cardBackground,
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: SPACING.xl,
     width: '100%',
@@ -243,14 +243,14 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   dniTitle: {
-    fontSize: TYPOGRAPHY.sizes.xxl,
-    fontWeight: TYPOGRAPHY.weights.bold,
-    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSize.xxl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textPrimary,
     marginBottom: SPACING.sm,
     textAlign: 'center',
   },
   dniSubtitle: {
-    fontSize: TYPOGRAPHY.sizes.md,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textSecondary,
     marginBottom: SPACING.xl,
     textAlign: 'center',
@@ -260,8 +260,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     borderRadius: 12,
     padding: SPACING.lg,
-    fontSize: TYPOGRAPHY.sizes.lg,
-    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    color: COLORS.textPrimary,
     borderWidth: 2,
     borderColor: COLORS.border,
     marginBottom: SPACING.lg,
@@ -274,9 +274,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   dniButtonText: {
-    fontSize: TYPOGRAPHY.sizes.lg,
-    fontWeight: TYPOGRAPHY.weights.bold,
-    color: COLORS.text,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: '#FFFFFF',
   },
   cancelButton: {
     backgroundColor: 'transparent',
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    fontSize: TYPOGRAPHY.sizes.md,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textSecondary,
   },
 });
