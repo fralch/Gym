@@ -464,6 +464,104 @@ export default function AdminPanelScreen() {
     );
   };
 
+  const checkMembersPhotos = async (list) => {
+    try {
+      const results = await Promise.all(
+        list.map(async (m) => {
+          try {
+            const r = await miembrosService.hasPhotoByDni(m.dni);
+            return { id_usuario: m.id_usuario, tiene_foto: !!r?.tiene_foto, foto_url: r?.foto_perfil?.url || null };
+          } catch {
+            return { id_usuario: m.id_usuario, tiene_foto: false, foto_url: null };
+          }
+        })
+      );
+      const map = {};
+      results.forEach((item) => {
+        map[item.id_usuario] = item;
+      });
+      setPhotoStatus(map);
+    } catch {}
+  };
+
+  const handleUploadPhoto = async (member) => {
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Permiso requerido', 'Habilita el acceso a la cámara para tomar la foto');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        cameraType: ImagePicker.CameraType.back,
+        quality: 0.8,
+      });
+      if (!result || result.canceled) return;
+      const asset = result.assets && result.assets.length > 0 ? result.assets[0] : null;
+      if (!asset) return;
+
+      console.log('Asset URI:', asset.uri);
+      console.log('Asset type:', asset.mimeType);
+
+      const formData = new FormData();
+
+      // React Native FormData requires specific format
+      const fileName = asset.fileName || `miembro_${member.id_usuario}_${Date.now()}.jpg`;
+      const fileType = asset.mimeType || 'image/jpeg';
+
+      formData.append('foto', {
+        uri: Platform.OS === 'android' ? asset.uri : asset.uri.replace('file://', ''),
+        type: fileType,
+        name: fileName,
+      });
+
+      console.log('FormData prepared:', { uri: asset.uri, type: fileType, name: fileName });
+
+      setLoading(true);
+      console.log('Uploading photo for member:', member.id_usuario);
+
+      const response = await miembrosService.uploadProfilePhoto(member.id_usuario, formData);
+
+      console.log('Upload response:', response);
+
+      if (response?.success) {
+        Alert.alert('Éxito', 'Foto de perfil actualizada');
+        try {
+          const r = await miembrosService.hasPhotoByDni(member.dni);
+          setPhotoStatus((prev) => ({
+            ...prev,
+            [member.id_usuario]: { id_usuario: member.id_usuario, tiene_foto: !!r?.tiene_foto, foto_url: r?.foto_perfil?.url || null },
+          }));
+        } catch {}
+      } else {
+        Alert.alert('Error', 'No se pudo subir la foto');
+      }
+    } catch (error) {
+      console.error('Error uploading photo - Full error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error request:', error.request);
+      console.error('Error message:', error.message);
+
+      let errorMessage = 'No se pudo subir la foto. Verifica tu conexión.';
+
+      if (error.response) {
+        // Server responded with error
+        errorMessage = error.response.data?.error || error.response.data?.message || `Error del servidor: ${error.response.status}`;
+      } else if (error.request) {
+        // Request was made but no response
+        errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
+      } else {
+        // Something else happened
+        errorMessage = error.message || 'Error desconocido al subir la foto';
+      }
+
+      Alert.alert('Error al subir foto', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -988,67 +1086,3 @@ const createStyles = (theme) =>
       fontWeight: TYPOGRAPHY.fontWeight.semiBold,
     },
   });
-  const checkMembersPhotos = async (list) => {
-    try {
-      const results = await Promise.all(
-        list.map(async (m) => {
-          try {
-            const r = await miembrosService.hasPhotoByDni(m.dni);
-            return { id_usuario: m.id_usuario, tiene_foto: !!r?.tiene_foto, foto_url: r?.foto_perfil?.url || null };
-          } catch {
-            return { id_usuario: m.id_usuario, tiene_foto: false, foto_url: null };
-          }
-        })
-      );
-      const map = {};
-      results.forEach((item) => {
-        map[item.id_usuario] = item;
-      });
-      setPhotoStatus(map);
-    } catch {}
-  };
-
-  const handleUploadPhoto = async (member) => {
-    try {
-      const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted) {
-        Alert.alert('Permiso requerido', 'Habilita el acceso a la cámara para tomar la foto');
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        cameraType: ImagePicker.CameraType.back,
-        quality: 0.8,
-      });
-      if (!result || result.canceled) return;
-      const asset = result.assets && result.assets.length > 0 ? result.assets[0] : null;
-      if (!asset) return;
-
-      const formData = new FormData();
-      formData.append('foto', {
-        uri: asset.uri,
-        name: asset.fileName || `miembro_${member.id_usuario}_${Date.now()}.jpg`,
-        type: asset.mimeType || 'image/jpeg',
-      });
-
-      setLoading(true);
-      const response = await miembrosService.uploadProfilePhoto(member.id_usuario, formData);
-      if (response?.success) {
-        Alert.alert('Éxito', 'Foto de perfil actualizada');
-        try {
-          const r = await miembrosService.hasPhotoByDni(member.dni);
-          setPhotoStatus((prev) => ({
-            ...prev,
-            [member.id_usuario]: { id_usuario: member.id_usuario, tiene_foto: !!r?.tiene_foto, foto_url: r?.foto_perfil?.url || null },
-          }));
-        } catch {}
-      } else {
-        Alert.alert('Error', 'No se pudo subir la foto');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo subir la foto');
-    } finally {
-      setLoading(false);
-    }
-  };

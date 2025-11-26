@@ -8,10 +8,9 @@ const BASE_URL = 'https://grupoviajesroxana.com/api/v1/endpoint';
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout
+  timeout: 30000, // 30 seconds timeout (increased for file uploads)
 });
 
 // Request interceptor to add auth token
@@ -21,6 +20,21 @@ api.interceptors.request.use(
       const token = await AsyncStorage.getItem('auth_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      // Only set Content-Type if not already explicitly set in the request config
+      if (!config.headers['Content-Type']) {
+        // Check if data is FormData by checking for _parts property (React Native)
+        const isFormData = config.data && (
+          config.data instanceof FormData ||
+          (config.data._parts !== undefined)
+        );
+
+        // Only set application/json for non-FormData requests
+        if (!isFormData) {
+          config.headers['Content-Type'] = 'application/json';
+        }
+        // For FormData, leave Content-Type undefined to let the browser/runtime set it
       }
     } catch (error) {
       console.error('Error getting auth token:', error);

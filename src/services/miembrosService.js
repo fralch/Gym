@@ -101,16 +101,32 @@ class MiembrosService {
 
   async uploadProfilePhoto(id_usuario, formData) {
     try {
+      console.log('miembrosService - Starting upload for user:', id_usuario);
+
+      // Special configuration for file upload in React Native
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 60000, // 60 seconds for file uploads
+      };
+
+      console.log('miembrosService - Request config:', config);
+
       const response = await api.post(
         `/gimnasio/miembros/${id_usuario}/foto-perfil`,
         formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
+        config
       );
+
+      console.log('miembrosService - Upload successful:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error uploading profile photo:', error.response?.data || error.message);
+      console.error('miembrosService - Error uploading profile photo');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
       throw error;
     }
   }
