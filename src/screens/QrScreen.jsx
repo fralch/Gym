@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, StatusBar, Alert, ActivityIndicator, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
+import { View, StyleSheet, StatusBar, ActivityIndicator, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
 import { Camera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -20,6 +20,13 @@ export default function QrScreen() {
   const [showDniInput, setShowDniInput] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState(null); // { url, nombre }
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    buttons: [],
+    type: 'info'
+  });
   const navigation = useNavigation();
   const { user } = useAuth();
   const { dni, setDni, hasDni } = useUser();
@@ -44,15 +51,40 @@ export default function QrScreen() {
     return unsubscribe;
   }, [navigation]);
 
+  const showAlert = (title, message, buttons = [], type = 'info') => {
+    const formattedButtons = buttons.length > 0 
+      ? buttons.map(btn => ({
+          ...btn,
+          onPress: () => {
+            setAlertConfig(prev => ({ ...prev, visible: false }));
+            if (btn.onPress) btn.onPress();
+          }
+        }))
+      : [{ 
+          text: 'OK', 
+          onPress: () => setAlertConfig(prev => ({ ...prev, visible: false })) 
+        }];
+
+    setAlertConfig({
+      visible: true,
+      title,
+      message,
+      buttons: formattedButtons,
+      type
+    });
+  };
+
   const getCameraPermissions = async () => {
     try {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
     } catch (error) {
       console.error('Error requesting camera permissions:', error);
-      Alert.alert(
+      showAlert(
         'Error',
-        'No se pudo solicitar permisos de cámara. Verifica la configuración de tu dispositivo.'
+        'No se pudo solicitar permisos de cámara. Verifica la configuración de tu dispositivo.',
+        [],
+        'error'
       );
     }
   };
@@ -63,13 +95,13 @@ export default function QrScreen() {
 
   const handleDniSubmit = async () => {
     if (!dniInput.trim()) {
-      Alert.alert('DNI Requerido', 'Por favor ingresa tu DNI.');
+      showAlert('DNI Requerido', 'Por favor ingresa tu DNI.', [], 'warning');
       return;
     }
 
     // Validate DNI format (basic validation - adjust as needed)
     if (dniInput.trim().length < 7 || dniInput.trim().length > 8) {
-      Alert.alert('DNI Inválido', 'El DNI debe tener entre 7 y 8 dígitos.');
+      showAlert('DNI Inválido', 'El DNI debe tener entre 7 y 8 dígitos.', [], 'warning');
       return;
     }
 
@@ -78,7 +110,7 @@ export default function QrScreen() {
       setShowDniInput(false);
       setShowSuccessModal(true);
     } catch (error) {
-      Alert.alert('Error', 'No se pudo guardar el DNI. Intenta de nuevo.');
+      showAlert('Error', 'No se pudo guardar el DNI. Intenta de nuevo.', [], 'error');
     }
   };
 
@@ -90,10 +122,11 @@ export default function QrScreen() {
 
     // Show success alert after closing the image
     if (imageData) {
-      Alert.alert(
+      showAlert(
         '¡Asistencia Registrada!',
         `${imageData.mensaje}\nHora: ${imageData.hora}`,
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
+        'success'
       );
     }
   };
@@ -103,7 +136,7 @@ export default function QrScreen() {
 
     // Check if DNI is configured
     if (!hasDni) {
-      Alert.alert('DNI Requerido', 'Por favor configura tu DNI antes de escanear el código QR.');
+      showAlert('DNI Requerido', 'Por favor configura tu DNI antes de escanear el código QR.', [], 'warning');
       return;
     }
 
@@ -134,7 +167,7 @@ export default function QrScreen() {
         });
       } else {
         // No image available, show alert directly
-        Alert.alert(
+        showAlert(
           '¡Asistencia Registrada!',
           `${mensaje}\nHora: ${hora}`,
           [
@@ -145,7 +178,8 @@ export default function QrScreen() {
                 setIsProcessing(false);
               }
             }
-          ]
+          ],
+          'success'
         );
       }
     } catch (error) {
@@ -169,7 +203,7 @@ export default function QrScreen() {
         errorMessage = 'El DNI proporcionado no es válido.\n\nPor favor, verifica tu DNI.';
       }
 
-      Alert.alert(
+      showAlert(
         errorTitle,
         errorMessage,
         [
@@ -177,7 +211,8 @@ export default function QrScreen() {
             text: 'OK',
             onPress: () => setScanned(false)
           }
-        ]
+        ],
+        'error'
       );
     }
   };
@@ -313,6 +348,57 @@ export default function QrScreen() {
           >
             <Text style={styles.tapToCloseText}>Toca para continuar</Text>
           </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Custom Alert Modal */}
+      <Modal
+        visible={alertConfig.visible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAlertConfig(prev => ({ ...prev, visible: false }))}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.alertIconContainer}>
+              <MaterialIcons 
+                name={
+                  alertConfig.type === 'success' ? 'check-circle' : 
+                  alertConfig.type === 'error' ? 'error' : 
+                  'info'
+                } 
+                size={64} 
+                color={
+                  alertConfig.type === 'success' ? COLORS.primary : 
+                  alertConfig.type === 'error' ? '#FF5252' : 
+                  COLORS.primary
+                } 
+              />
+            </View>
+            <Text style={styles.alertTitle}>{alertConfig.title}</Text>
+            <Text style={styles.alertMessage}>{alertConfig.message}</Text>
+            
+            <View style={styles.alertButtonsContainer}>
+              {alertConfig.buttons.map((btn, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.alertButton,
+                    btn.style === 'cancel' ? styles.alertButtonCancel : styles.alertButtonDefault,
+                    alertConfig.buttons.length > 1 && { flex: 1, marginHorizontal: 5 }
+                  ]}
+                  onPress={btn.onPress}
+                >
+                  <Text style={[
+                    styles.alertButtonText,
+                    btn.style === 'cancel' ? styles.alertButtonTextCancel : styles.alertButtonTextDefault
+                  ]}>
+                    {btn.text}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
       </Modal>
     </View>
@@ -500,5 +586,52 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  alertIconContainer: {
+    marginBottom: SPACING.lg,
+  },
+  alertTitle: {
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
+  },
+  alertMessage: {
+    fontSize: TYPOGRAPHY.fontSize.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+    lineHeight: 22,
+  },
+  alertButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  alertButton: {
+    borderRadius: 12,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xl,
+    alignItems: 'center',
+    minWidth: 100,
+  },
+  alertButtonDefault: {
+    backgroundColor: COLORS.primary,
+  },
+  alertButtonCancel: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  alertButtonText: {
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+  },
+  alertButtonTextDefault: {
+    color: '#FFFFFF',
+  },
+  alertButtonTextCancel: {
+    color: COLORS.textSecondary,
   },
 });
