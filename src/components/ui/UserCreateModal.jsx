@@ -30,7 +30,7 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
     dni: '',
     fecha_nacimiento: '',
     genero: '',
-    telefono: '',
+    celular: '',
   });
   const [successVisible, setSuccessVisible] = useState(false);
   const [createdUser, setCreatedUser] = useState(null);
@@ -88,7 +88,7 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
         dni: formData.dni.trim(),
         fecha_nacimiento: formData.fecha_nacimiento.trim(),
         genero: formData.genero,
-        telefono: formData.telefono.trim() || null,
+        celular: formData.celular.trim() || null,
         estado: 'Activo',
         fecha_registro: new Date().toISOString().split('T')[0], // Today's date
       };
@@ -114,7 +114,7 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
       dni: '',
       fecha_nacimiento: '',
       genero: '',
-      telefono: '',
+      celular: '',
     });
     setSelectedDate(new Date(2000, 0, 1));
     setShowDatePicker(false);
@@ -280,17 +280,17 @@ export default function UserCreateModal({ visible, onClose, onSuccess }) {
               </View>
             </View>
 
-            {/* Teléfono */}
+            {/* Celular */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Teléfono</Text>
+              <Text style={styles.label}>Celular</Text>
               <View style={styles.inputContainer}>
-                <MaterialIcons name="phone" size={20} color={theme.textSecondary} />
+                <MaterialIcons name="smartphone" size={20} color={theme.textSecondary} />
                 <TextInput
                   style={styles.input}
                   placeholder="987654321"
                   placeholderTextColor={theme.textSecondary}
-                  value={formData.telefono}
-                  onChangeText={(value) => updateField('telefono', value)}
+                  value={formData.celular}
+                  onChangeText={(value) => updateField('celular', value)}
                   editable={!loading}
                   keyboardType="phone-pad"
                 />

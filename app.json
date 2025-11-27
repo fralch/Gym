@@ -32,7 +32,7 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.fralch.Gym", 
+      "package": "com.fralch.Gym",
       "versionCode": 2
     },
     "web": {
@@ -43,12 +43,6 @@
         "expo-camera",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
-        }
-      ],
-      [
-        "expo-barcode-scanner",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access camera."
         }
       ]
     ],
