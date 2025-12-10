@@ -102,6 +102,13 @@ export default function LoginScreen() {
       <StatusBar barStyle="light-content" backgroundColor={theme.primary} />
 
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={theme.textInverse} />
+        </TouchableOpacity>
+        
         <MaterialIcons name="fitness-center" size={60} color={theme.textInverse} />
         <Text style={styles.title}>Gimnasio</Text>
         <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
@@ -197,7 +204,14 @@ const createStyles = (theme) =>
       paddingTop: 60,
       paddingBottom: 40,
       alignItems: 'center',
-      justifyContent: 'center',
+      position: 'relative',
+    },
+    backButton: {
+      position: 'absolute',
+      top: 50,
+      left: 20,
+      padding: 10,
+      zIndex: 10,
     },
     title: {
       fontSize: TYPOGRAPHY.fontSize.xxl,
