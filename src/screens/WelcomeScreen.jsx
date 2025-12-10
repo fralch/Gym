@@ -26,8 +26,12 @@ export default function WelcomeScreen() {
       
       {/* Header / Logo Area */}
       <View style={styles.header}>
-        <View style={styles.iconContainer}>
-            <MaterialIcons name="fitness-center" size={80} color={theme.textInverse} />
+        <View style={styles.logoContainer}>
+            <Image 
+              source={require('../Images/Majanayim.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
         </View>
         <Text style={styles.title}>GYM APP</Text>
         <Text style={styles.subtitle}>Tu compañero de entrenamiento</Text>
@@ -94,11 +98,15 @@ const createStyles = (theme) =>
       shadowOpacity: 0.3,
       shadowRadius: 5,
     },
-    iconContainer: {
+    logoContainer: {
         marginBottom: SPACING.lg,
-        padding: SPACING.lg,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        borderRadius: 100,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+    },
+    logo: {
+        width: 150,
+        height: 150,
     },
     title: {
       fontSize: TYPOGRAPHY.fontSize.xxxl,
