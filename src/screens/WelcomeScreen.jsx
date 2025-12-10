@@ -63,7 +63,7 @@ export default function WelcomeScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.buttonAccent}
+          style={[styles.buttonAccent, { backgroundColor: '#424242ff' }]}
           onPress={() => navigation.navigate('QrScanner')}
         >
           <MaterialIcons name="qr-code-scanner" size={24} color={theme.textInverse} style={styles.buttonIcon} />
