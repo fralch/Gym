@@ -631,7 +631,7 @@ export default function AdminPanelScreen() {
               activeTab === 'members' && { color: theme.primary, fontWeight: 'bold' },
             ]}
           >
-            Miembros ({members.length})
+            Clientes ({members.length})
           </Text>
         </TouchableOpacity>
 
