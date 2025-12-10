@@ -116,10 +116,10 @@ export default function LoginScreen() {
 
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
-          <MaterialIcons name="email" size={20} color={theme.textSecondary} />
+          <MaterialIcons name="badge" size={20} color={theme.textSecondary} />
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder="DNI"
             placeholderTextColor={theme.textSecondary}
             value={email}
             onChangeText={setEmail}
