@@ -50,27 +50,17 @@ export default function UserInfoScreen({ route }) {
       const storedUserData = await authService.getUserData();
 
       if (storedUserData && storedUserData.id_usuario) {
-        // Fetch full member details
-        const memberResponse = await miembrosService.getById(storedUserData.id_usuario);
-
-        if (memberResponse.success && memberResponse.data) {
-          const member = memberResponse.data;
-
-          // Fetch active membership
-          const activeMembership = await membresiasService.getActiveMembership(member.id_usuario);
-
-          // Calculate remaining days
-          let remainingDays = 0;
+        // Optimization: If stored data contains full profile and membership info (from new login endpoint), use it directly
+        if (storedUserData.membresia_actual !== undefined && storedUserData.dias_restantes !== undefined) {
+          const member = storedUserData;
+          const activeMembership = storedUserData.membresia_actual;
+          
+          let remainingDays = storedUserData.dias_restantes;
           let startDate = 'N/A';
           let endDate = 'N/A';
           let status = 'Inactivo';
 
           if (activeMembership) {
-            const today = new Date();
-            const end = new Date(activeMembership.fecha_fin);
-            const start = new Date(activeMembership.fecha_inicio);
-
-            remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
             startDate = formatDate(activeMembership.fecha_inicio);
             endDate = formatDate(activeMembership.fecha_fin);
             status = activeMembership.estado;
@@ -86,6 +76,45 @@ export default function UserInfoScreen({ route }) {
             qrData: qrData || checkinTime || 'No data scanned',
           });
           setMembershipStatus(status);
+        } else {
+          // Fallback: Fetch details from API if not in stored data
+          // Fetch full member details
+          const memberResponse = await miembrosService.getById(storedUserData.id_usuario);
+  
+          if (memberResponse.success && memberResponse.data) {
+            const member = memberResponse.data;
+  
+            // Fetch active membership
+            const activeMembership = await membresiasService.getActiveMembership(member.id_usuario);
+  
+            // Calculate remaining days
+            let remainingDays = 0;
+            let startDate = 'N/A';
+            let endDate = 'N/A';
+            let status = 'Inactivo';
+  
+            if (activeMembership) {
+              const today = new Date();
+              const end = new Date(activeMembership.fecha_fin);
+              // const start = new Date(activeMembership.fecha_inicio); // Unused
+  
+              remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+              startDate = formatDate(activeMembership.fecha_inicio);
+              endDate = formatDate(activeMembership.fecha_fin);
+              status = activeMembership.estado;
+            }
+  
+            setUserInfo({
+              name: member.nombre,
+              dni: member.dni,
+              startDate: startDate,
+              endDate: endDate,
+              remainingDays: remainingDays > 0 ? remainingDays : 0,
+              estado: status,
+              qrData: qrData || checkinTime || 'No data scanned',
+            });
+            setMembershipStatus(status);
+          }
         }
       } else {
         // If no user data, show default message

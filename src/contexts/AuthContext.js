@@ -35,15 +35,15 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Login function
-   * @param {string} email - User email
+   * @param {string} dni - User DNI
    * @param {string} password - User password
    * @returns {Promise<boolean>} - Success status
    */
-  const login = async (email, password) => {
+  const login = async (dni, password) => {
     try {
-      const response = await authService.login(email, password);
+      const response = await authService.loginMember(dni, password);
 
-      if (response.token && response.user) {
+      if (response.success && response.user) {
         setUser(response.user);
         setIsAuthenticated(true);
         return true;

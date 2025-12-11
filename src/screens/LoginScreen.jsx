@@ -25,7 +25,7 @@ export default function LoginScreen() {
   const { login, setAuthData } = useAuth();
   const navigation = useNavigation();
 
-  const [email, setEmail] = useState('');
+  const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,19 +57,19 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Por favor ingresa tu email y contraseña');
+    if (!dni || !password) {
+      Alert.alert('Error', 'Por favor ingresa tu DNI y contraseña');
       return;
     }
 
     // Check for admin credentials
-    if (email === 'admin' && password === 'password') {
+    if (dni === 'admin' && password === 'password') {
       // Save admin session
       await saveAdminSession();
       // Navigate to admin panel
       navigation.navigate('AdminPanel');
       // Clear fields
-      setEmail('');
+      setDni('');
       setPassword('');
       return;
     }
@@ -77,8 +77,9 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await login(email, password);
-      // Navigation will be handled automatically by AuthContext
+      await login(dni, password);
+      // Navigation handled manually since AuthContext just updates state
+      navigation.replace('UserInfo');
     } catch (error) {
       Alert.alert(
         'Error de Autenticación',
@@ -121,11 +122,9 @@ export default function LoginScreen() {
             style={styles.input}
             placeholder="DNI"
             placeholderTextColor={theme.textSecondary}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
+            value={dni}
+            onChangeText={setDni}
             autoCapitalize="none"
-            autoComplete="email"
             editable={!loading}
           />
         </View>

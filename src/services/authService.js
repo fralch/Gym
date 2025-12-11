@@ -107,6 +107,40 @@ class AuthService {
       throw error;
     }
   }
+
+  /**
+   * Login member with DNI
+   * @param {string} dni - Member DNI
+   * @param {string} password - Member password
+   * @returns {Promise<object>} - Response with user data
+   */
+  async loginMember(dni, password) {
+    try {
+      // Use the specific endpoint for member login
+      const response = await api.post('https://grupoviajesroxana.com/api/v1/endpoint/gimnasio/miembros/login', {
+        dni,
+        password,
+      });
+
+      if (response.data.success && response.data.data) {
+        // Store user data. A dummy token is used to maintain "authenticated" state in the app logic
+        // assuming the backend doesn't return a token for this endpoint.
+        const dummyToken = 'member-session-token';
+        await this.setToken(dummyToken);
+        await this.setUserData(response.data.data);
+        return {
+          success: true,
+          user: response.data.data,
+          token: dummyToken
+        };
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('Member login error:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 }
 
 export default new AuthService();
