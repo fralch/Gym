@@ -1,86 +1,142 @@
 import React from 'react';
-import { View, StyleSheet, Modal, TouchableOpacity, Text, StatusBar, Dimensions } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, Text, StatusBar, Dimensions, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
 
 const { width, height } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.9;
+const CARD_HEIGHT = height * 0.75;
 
 export default function FullscreenImageModal({ visible, onClose, image }) {
+  const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
+  const opacityAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      scaleAnim.setValue(0.9);
+      opacityAnim.setValue(0);
+    }
+  }, [visible]);
+
   if (!image) return null;
 
   return (
     <Modal
       visible={visible}
       transparent={true}
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
+      statusBarTranslucent
     >
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="black" />
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         
         {/* Background Overlay */}
-        <View style={styles.blackOverlay} />
-        <BlurView intensity={10} tint="dark" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={30} tint="dark" style={StyleSheet.absoluteFill}>
+          <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacityAnim }]}>
+            <TouchableOpacity 
+              style={StyleSheet.absoluteFill} 
+              activeOpacity={1} 
+              onPress={onClose} 
+            />
+          </Animated.View>
+        </BlurView>
 
         {/* Close Button */}
-        <TouchableOpacity
-          style={styles.closeButton}
+        <TouchableOpacity 
+          style={styles.closeButton} 
           onPress={onClose}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
         >
-          <BlurView intensity={30} tint="light" style={styles.closeButtonBlur}>
-            <MaterialIcons name="close" size={28} color="#FFFFFF" />
-          </BlurView>
+          <View style={styles.closeButtonInner}>
+            <MaterialIcons name="close" size={24} color="#FFFFFF" />
+          </View>
         </TouchableOpacity>
 
-        {/* Content Container */}
-        <View style={styles.contentContainer}>
-          {/* Header Info */}
-          <View style={styles.headerContainer}>
-            {image.nombre && (
-              <Text style={styles.memberName} numberOfLines={2}>
-                {image.nombre}
-              </Text>
-            )}
-            {image.mensaje && (
-              <Text style={styles.memberStatus}>
-                {image.mensaje}
-              </Text>
-            )}
-          </View>
-
-          {/* Profile Image */}
-          <View style={styles.imageWrapper}>
+        {/* Profile Card */}
+        <Animated.View 
+          style={[
+            styles.card,
+            {
+              transform: [{ scale: scaleAnim }],
+              opacity: opacityAnim,
+            },
+          ]}
+        >
+          {/* Image Section with Gradient Overlay */}
+          <View style={styles.imageContainer}>
             <Image
               source={{ uri: image.url }}
               style={styles.image}
-              contentFit="contain"
+              contentFit="cover"
               transition={300}
               cachePolicy="memory-disk"
             />
+            {/* Gradient overlay for better text readability */}
+            <View style={styles.gradientOverlay} />
           </View>
 
-          {/* Footer Info */}
-          <View style={styles.footerWrapper}>
-             {image.hora && (
-              <View style={styles.timeContainer}>
-                <MaterialIcons name="access-time" size={18} color="#CCCCCC" />
-                <Text style={styles.timeText}>{image.hora}</Text>
+          {/* Content Section */}
+          <View style={styles.contentContainer}>
+            {/* Name and Verified Badge */}
+            <View style={styles.headerRow}>
+              <View style={styles.nameContainer}>
+                <Text style={styles.nameText} numberOfLines={1}>
+                  {image.nombre}
+                </Text>
+                <View style={styles.verifiedBadge}>
+                  <MaterialIcons name="verified" size={20} color="#3B82F6" />
+                </View>
+              </View>
+            </View>
+
+            {/* Description/Status */}
+            {image.mensaje && (
+              <View style={styles.messageContainer}>
+                <Text style={styles.statusText} numberOfLines={3}>
+                  {image.mensaje}
+                </Text>
               </View>
             )}
 
-            {/* Tap to close hint */}
+            {/* Stats / Info Row */}
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <View style={styles.iconCircle}>
+                  <MaterialIcons name="schedule" size={18} color="#EF4444" />
+                </View>
+                <Text style={styles.statLabel}>Hora de registro</Text>
+                <Text style={styles.statValue}>{image.hora}</Text>
+              </View>
+            </View>
+
+            {/* Action Button */}
             <TouchableOpacity
-              style={styles.tapToCloseHint}
+              style={styles.primaryButton}
               onPress={onClose}
               activeOpacity={0.8}
             >
-              <Text style={styles.tapToCloseText}>Toca para continuar</Text>
+              <Text style={styles.primaryButtonText}>Continuar</Text>
+              <MaterialIcons name="arrow-forward" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -91,96 +147,178 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  blackOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   closeButton: {
     position: 'absolute',
-    top: 50, // Safe area approximation
+    top: 50,
     right: 20,
-    zIndex: 20,
-  },
-  closeButtonBlur: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  contentContainer: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'space-between',
-    paddingVertical: 80,
-  },
-  headerContainer: {
-    width: '100%',
-    paddingHorizontal: SPACING.xl,
-    alignItems: 'center',
     zIndex: 10,
-    paddingTop: 40,
   },
-  memberName: {
-    fontSize: TYPOGRAPHY.fontSize.xxl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: SPACING.xs,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  memberStatus: {
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    color: '#4ADE80', // Greenish
-    textAlign: 'center',
-    fontWeight: '600',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-    marginTop: SPACING.xs,
-  },
-  imageWrapper: {
-    width: width,
-    height: height * 0.5,
+  closeButtonInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  card: {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    overflow: 'hidden',
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 20,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 30,
+  },
+  imageContainer: {
+    height: '60%',
+    width: '100%',
+    backgroundColor: '#F3F4F6',
+    position: 'relative',
   },
   image: {
+    flex: 1,
     width: '100%',
-    height: '100%',
   },
-  footerWrapper: {
+  gradientOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: 'transparent',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  contentContainer: {
+    height: '40%',
     width: '100%',
-    alignItems: 'center',
-    paddingBottom: 20,
+    padding: SPACING.xl,
+    paddingTop: SPACING.lg,
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
   },
-  timeContainer: {
+  headerRow: {
+    marginBottom: SPACING.sm,
+  },
+  nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: SPACING.lg,
+  },
+  nameText: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#111827',
+    letterSpacing: -0.5,
+    marginRight: SPACING.xs,
+  },
+  verifiedBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#DBEAFE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  messageContainer: {
+    marginBottom: SPACING.md,
+  },
+  statusText: {
+    fontSize: 15,
+    color: '#6B7280',
+    lineHeight: 22,
+    fontWeight: '400',
+  },
+  statsRow: {
+    marginBottom: SPACING.md,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderRadius: 20,
-    marginBottom: SPACING.xl,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  timeText: {
-    color: '#FFFFFF',
-    fontSize: TYPOGRAPHY.fontSize.lg,
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.sm,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#9CA3AF',
     fontWeight: '500',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+  },
+  primaryButton: {
+    backgroundColor: '#EF4444',
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    elevation: 4,
+    shadowColor: '#EF4444',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 16,
+    marginRight: SPACING.xs,
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+  },
+  secondaryButtonText: {
+    color: '#6366F1',
+    fontWeight: '600',
+    fontSize: 16,
     marginLeft: SPACING.xs,
-  },
-  tapToCloseHint: {
-    padding: SPACING.md,
-  },
-  tapToCloseText: {
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
   },
 });
