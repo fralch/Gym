@@ -7,7 +7,7 @@ import { COLORS, SPACING, TYPOGRAPHY } from '../../constants';
 
 const { width, height } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.9;
-const CARD_HEIGHT = height * 0.75;
+const CARD_HEIGHT = height * 0.8;
 
 export default function FullscreenImageModal({ visible, onClose, image }) {
   console.log('FullscreenImageModal image prop:', image);
@@ -102,7 +102,7 @@ export default function FullscreenImageModal({ visible, onClose, image }) {
                   {image.nombre}
                 </Text>
                 <View style={styles.verifiedBadge}>
-                  <MaterialIcons name="verified" size={20} color="#3B82F6" />
+                  <MaterialIcons name="verified" size={20} color="#07bd3eff" />
                 </View>
               </View>
             </View>
@@ -186,6 +186,11 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#F3F4F6',
     position: 'relative',
+    borderWidth: 12,
+    borderColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
   },
   image: {
     flex: 1,
@@ -227,7 +232,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: '#e8fedbff',
     justifyContent: 'center',
     alignItems: 'center',
   },
