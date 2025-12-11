@@ -146,10 +146,12 @@ export default function QrScreen() {
 
     // Log scan data for debugging
     console.log(`QR Code scanned: ${type} - ${data}`);
+    console.log('Using DNI for check-in:', dni);
 
     try {
       // Call the check-in API with the user's DNI
       const response = await checkinService.marcarAsistencia(dni);
+      console.log('Checkin response:', JSON.stringify(response, null, 2));
 
       // Extract member data from response
       const memberData = response.data?.miembro || response.miembro;

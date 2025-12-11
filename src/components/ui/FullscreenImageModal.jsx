@@ -10,6 +10,7 @@ const CARD_WIDTH = width * 0.9;
 const CARD_HEIGHT = height * 0.75;
 
 export default function FullscreenImageModal({ visible, onClose, image }) {
+  console.log('FullscreenImageModal image prop:', image);
   const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
   const opacityAnim = React.useRef(new Animated.Value(0)).current;
 
