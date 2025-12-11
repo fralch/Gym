@@ -8,6 +8,7 @@ import {
   PermissionsRequest,
   QRCodeScanner
 } from '../components/scanner';
+import FullscreenImageModal from '../components/ui/FullscreenImageModal';
 import { checkinService, membresiasService } from '../services';
 import { useAuth } from '../contexts/AuthContext';
 import { useUser } from '../contexts/UserContext';
@@ -307,49 +308,11 @@ export default function QrScreen() {
       </Modal>
 
       {/* Fullscreen Image Modal */}
-      <Modal
+      <FullscreenImageModal
         visible={!!fullscreenImage}
-        transparent={false}
-        animationType="fade"
-        onRequestClose={handleCloseFullscreenImage}
-      >
-        <View style={styles.fullscreenContainer}>
-          <StatusBar barStyle="light-content" backgroundColor="black" />
-
-          {/* Close Button */}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={handleCloseFullscreenImage}
-          >
-            <MaterialIcons name="close" size={32} color="#FFFFFF" />
-          </TouchableOpacity>
-
-          {/* Member Name */}
-          {fullscreenImage?.nombre && (
-            <View style={styles.memberNameContainer}>
-              <Text style={styles.memberName}>{fullscreenImage.nombre}</Text>
-            </View>
-          )}
-
-          {/* Profile Image */}
-          {fullscreenImage?.url && (
-            <Image
-              source={{ uri: fullscreenImage.url }}
-              style={styles.fullscreenImage}
-              resizeMode="contain"
-            />
-          )}
-
-          {/* Tap to close hint */}
-          <TouchableOpacity
-            style={styles.tapToCloseHint}
-            onPress={handleCloseFullscreenImage}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.tapToCloseText}>Toca para continuar</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        image={fullscreenImage}
+        onClose={handleCloseFullscreenImage}
+      />
 
       {/* Custom Alert Modal */}
       <Modal
@@ -528,64 +491,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-  },
-  fullscreenContainer: {
-    flex: 1,
-    backgroundColor: '#000000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
-    padding: SPACING.sm,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  memberNameContainer: {
-    position: 'absolute',
-    top: 100,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 5,
-    paddingHorizontal: SPACING.xl,
-  },
-  memberName: {
-    fontSize: TYPOGRAPHY.fontSize.xxl,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  fullscreenImage: {
-    width: '100%',
-    height: '100%',
-  },
-  tapToCloseHint: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-  },
-  tapToCloseText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   alertIconContainer: {
     marginBottom: SPACING.lg,
