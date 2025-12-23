@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Text, View, StyleSheet, Animated, Image } from 'react-native';
+import { Text, View, StyleSheet, Animated, Image, TouchableOpacity } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { SPACING, TYPOGRAPHY } from '../../constants';
 import { useThemedStyles } from '../../hooks/useTheme';
 
-export default function QRCodeScanner({ scanned, onBarCodeScanned }) {
+export default function QRCodeScanner({ scanned, onBarCodeScanned, onLogoPress }) {
   const [scanAnimation] = useState(new Animated.Value(0));
   const styles = useThemedStyles(createStyles);
 
@@ -42,13 +42,17 @@ export default function QRCodeScanner({ scanned, onBarCodeScanned }) {
     >
       <View style={styles.overlay}>
         {/* Logo at the top */}
-        <View style={styles.logoContainer}>
-          <Image 
-            source={require('../../Images/Majanayim.png')} 
+        <TouchableOpacity
+          style={styles.logoContainer}
+          onPress={onLogoPress}
+          activeOpacity={0.7}
+        >
+          <Image
+            source={require('../../Images/Majanayim.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-        </View>
+        </TouchableOpacity>
 
         {/* Main scanning area */}
         <View style={styles.scanningArea}>

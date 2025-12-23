@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Platform, Animated, Easing, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Text,
@@ -14,21 +14,143 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
+import Card from '../components/ui/Card';
+import { authService, miembrosService, membresiasService } from '../services';
 
 export default function UserInfoScreen({ route }) {
   const { theme, toggleTheme, isDarkMode } = useTheme();
   const styles = useThemedStyles(createStyles);
   const navigation = useNavigation();
-  
-  const { qrData } = route.params || {};
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const userInfo = {
-    name: 'Alexander Frank Cairampoma',
-    dni: '12345678',
-    startDate: '19-09-2022',
-    endDate: '19-09-2023',
-    remainingDays: 298,
-    qrData: qrData || 'No data scanned',
+  const { qrData, checkinSuccess, checkinTime } = route.params || {};
+
+  const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState({
+    name: 'Cargando...',
+    dni: '...',
+    startDate: '...',
+    endDate: '...',
+    remainingDays: 0,
+    estado: 'Inactivo',
+    qrData: qrData || checkinTime || 'No data scanned',
+  });
+  const [membershipStatus, setMembershipStatus] = useState('Inactivo');
+
+  // Fetch user data
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+
+      // Get stored user data from auth service
+      const storedUserData = await authService.getUserData();
+
+      if (storedUserData && storedUserData.id_usuario) {
+        // Optimization: If stored data contains full profile and membership info (from new login endpoint), use it directly
+        if (storedUserData.membresia_actual !== undefined && storedUserData.dias_restantes !== undefined) {
+          const member = storedUserData;
+          const activeMembership = storedUserData.membresia_actual;
+          
+          let remainingDays = storedUserData.dias_restantes;
+          let startDate = 'N/A';
+          let endDate = 'N/A';
+          let status = 'Inactivo';
+
+          if (activeMembership) {
+            startDate = formatDate(activeMembership.fecha_inicio);
+            endDate = formatDate(activeMembership.fecha_fin);
+            status = activeMembership.estado;
+          }
+
+          setUserInfo({
+            name: member.nombre,
+            dni: member.dni,
+            startDate: startDate,
+            endDate: endDate,
+            remainingDays: remainingDays > 0 ? remainingDays : 0,
+            estado: status,
+            qrData: qrData || checkinTime || 'No data scanned',
+          });
+          setMembershipStatus(status);
+        } else {
+          // Fallback: Fetch details from API if not in stored data
+          // Fetch full member details
+          const memberResponse = await miembrosService.getById(storedUserData.id_usuario);
+  
+          if (memberResponse.success && memberResponse.data) {
+            const member = memberResponse.data;
+  
+            // Fetch active membership
+            const activeMembership = await membresiasService.getActiveMembership(member.id_usuario);
+  
+            // Calculate remaining days
+            let remainingDays = 0;
+            let startDate = 'N/A';
+            let endDate = 'N/A';
+            let status = 'Inactivo';
+  
+            if (activeMembership) {
+              const today = new Date();
+              const end = new Date(activeMembership.fecha_fin);
+              // const start = new Date(activeMembership.fecha_inicio); // Unused
+  
+              remainingDays = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+              startDate = formatDate(activeMembership.fecha_inicio);
+              endDate = formatDate(activeMembership.fecha_fin);
+              status = activeMembership.estado;
+            }
+  
+            setUserInfo({
+              name: member.nombre,
+              dni: member.dni,
+              startDate: startDate,
+              endDate: endDate,
+              remainingDays: remainingDays > 0 ? remainingDays : 0,
+              estado: status,
+              qrData: qrData || checkinTime || 'No data scanned',
+            });
+            setMembershipStatus(status);
+          }
+        }
+      } else {
+        // If no user data, show default message
+        setUserInfo({
+          name: 'Usuario no encontrado',
+          dni: 'N/A',
+          startDate: 'N/A',
+          endDate: 'N/A',
+          remainingDays: 0,
+          estado: 'Inactivo',
+          qrData: qrData || 'No data scanned',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUserInfo({
+        name: 'Error al cargar',
+        dni: 'N/A',
+        startDate: 'N/A',
+        endDate: 'N/A',
+        remainingDays: 0,
+        estado: 'Inactivo',
+        qrData: qrData || 'Error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   const getStatusColor = (days) => {
@@ -47,12 +169,22 @@ export default function UserInfoScreen({ route }) {
     navigation.goBack();
   };
 
+  const handleStatsPress = () => {
+    navigation.navigate('Stats');
+  };
+
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (Platform.OS === 'ios') {
       StatusBar.setBarStyle('light-content', true);
     }
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   return (
@@ -68,11 +200,23 @@ export default function UserInfoScreen({ route }) {
       >
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 15 }]}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleBackPress}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleBackPress}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: 'white' }]}>Información del Usuario</Text>
-          <TouchableOpacity style={styles.headerButton} onPress={toggleTheme}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={toggleTheme}
+            accessibilityRole="button"
+            accessibilityLabel={isDarkMode ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <MaterialIcons 
               name={isDarkMode ? "light-mode" : "dark-mode"} 
               size={24} 
@@ -82,14 +226,16 @@ export default function UserInfoScreen({ route }) {
         </View>
 
         {/* Profile Section with Blue Background */}
-        <View style={styles.profileSection}>
+        <Animated.View style={[styles.profileSection, { opacity: fadeAnim }]}>
           <View style={styles.blueBackground}>
             <View style={styles.profileImageContainer}>
-              <Image
-                source={require('../../assets/imgs/user.jpg')}
-                style={styles.profileImage}
-                transition={500}
-              />
+              <View style={styles.profileImageRing}>
+                <Image
+                  source={require('../../assets/imgs/user.jpg')}
+                  style={styles.profileImage}
+                  transition={500}
+                />
+              </View>
               <View style={styles.checkBadge}>
                 <MaterialIcons name="check" size={16} color="white" />
               </View>
@@ -97,19 +243,35 @@ export default function UserInfoScreen({ route }) {
           </View>
           
           <View style={styles.userInfoSection}>
-            <Text style={styles.userName}>{userInfo.name}</Text>
-            <Text style={styles.userDni}>DNI: {userInfo.dni}</Text>
-            <Text style={styles.userStatus}>Activo</Text>
+            {loading ? (
+              <ActivityIndicator size="large" color={theme.primary} />
+            ) : (
+              <>
+                <Text style={styles.userName}>{userInfo.name}</Text>
+                <Text style={styles.userDni}>DNI: {userInfo.dni}</Text>
+                <View style={[
+                  styles.userStatusPill,
+                  { backgroundColor: membershipStatus === 'Activa' ? theme.success : theme.error }
+                ]}>
+                  <MaterialIcons
+                    name={membershipStatus === 'Activa' ? 'check-circle' : 'cancel'}
+                    size={16}
+                    color={theme.textInverse}
+                  />
+                  <Text style={styles.userStatusText}>{membershipStatus}</Text>
+                </View>
+              </>
+            )}
           </View>
-        </View>
+        </Animated.View>
 
         {/* User Information */}
-        <View style={styles.menuContainer}>
+        <Card style={styles.menuContainer}>
           <MenuItem
             icon="check-circle"
             label="Estado"
-            value="Activo"
-            valueColor="#4CAF50"
+            value={membershipStatus}
+            valueColor={membershipStatus === 'Activa' ? theme.success : theme.error}
           />
 
           <MenuItem
@@ -139,14 +301,24 @@ export default function UserInfoScreen({ route }) {
             badgeColor={getStatusColor(userInfo.remainingDays)}
           />
 
-         
-        </View>
+          <MenuItem
+            icon="qr-code"
+            label="Último QR"
+            value={userInfo.qrData}
+            noBorder
+          />
+        </Card>
 
-        {/* Action Button */}
+        {/* Action Buttons */}
         <View style={styles.actionContainer}>
-          <TouchableOpacity style={styles.scanAgainButton} onPress={handleBackPress}>
-            <MaterialIcons name="qr-code-scanner" size={24} color={theme.textInverse} />
-            <Text style={styles.scanAgainText}>Escanear Nuevo Código</Text>
+          <TouchableOpacity
+            style={styles.scanAgainButton}
+            onPress={handleStatsPress}
+            accessibilityRole="button"
+            accessibilityLabel="Ver estadísticas"
+          >
+            <MaterialIcons name="bar-chart" size={24} color={theme.textInverse} />
+            <Text style={styles.scanAgainText}>Ver Estadísticas</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -154,12 +326,18 @@ export default function UserInfoScreen({ route }) {
   );
 }
 
-function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
+const MenuItem = React.memo(function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor, noBorder }) {
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const a11yLabel = value ? `${label}: ${value}` : label;
   
   return (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity
+      style={[styles.menuItem, noBorder && { borderBottomWidth: 0 }]}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+    >
       <View style={styles.menuItemLeft}>
         <View style={styles.menuIconContainer}>
           <MaterialIcons name={icon} size={20} color={theme.primary} />
@@ -167,7 +345,11 @@ function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
       <View style={styles.menuItemRight}>
-        <Text style={[styles.menuValue, { color: valueColor || theme.textPrimary }]}>
+        <Text
+          style={[styles.menuValue, { color: valueColor || theme.textSecondary }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
           {value}
         </Text>
         {showBadge && (
@@ -176,7 +358,7 @@ function MenuItem({ icon, label, value, valueColor, showBadge, badgeColor }) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 const createStyles = (theme) => StyleSheet.create({
   container: {
@@ -186,6 +368,7 @@ const createStyles = (theme) => StyleSheet.create({
 
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 30,
   },
 
   header: {
@@ -193,7 +376,6 @@ const createStyles = (theme) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 50,
     paddingBottom: 20,
     backgroundColor: theme.primary,
   },
@@ -206,35 +388,48 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.textInverse,
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    letterSpacing: 0.3,
   },
 
   profileSection: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
 
   blueBackground: {
     backgroundColor: theme.primary,
     width: '100%',
     height: 120,
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    paddingBottom: 20,
+    paddingBottom: 60, // Increased padding to push the image down
   },
 
   profileImageContainer: {
-    position: 'relative',
-    marginBottom: -40,
+    position: 'absolute',
+    bottom: -50, // Adjust this to position the image correctly
+  },
+
+  profileImageRing: {
+    width: 132,
+    height: 132,
+    borderRadius: 66,
+    backgroundColor: theme.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
 
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    borderWidth: 3,
-    borderColor: theme.textInverse,
   },
 
   checkBadge: {
@@ -242,53 +437,60 @@ const createStyles = (theme) => StyleSheet.create({
     bottom: 5,
     right: 5,
     backgroundColor: theme.success,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.textInverse,
+    borderColor: theme.background,
   },
 
   userInfoSection: {
     alignItems: 'center',
-    marginTop: 50,
-    marginBottom: 20,
+    marginTop: 60, // Increased margin to give space for the image
+    paddingHorizontal: 20,
   },
 
   userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: theme.textPrimary,
-    marginBottom: 5,
+    marginBottom: 4,
     textAlign: 'center',
   },
 
   userDni: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: theme.textSecondary,
-    marginBottom: 3,
+    marginBottom: 12,
   },
 
-  userStatus: {
-    fontSize: 12,
-    color: theme.success,
-    fontWeight: '500',
+  userStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.success,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+
+  userStatusText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: theme.textInverse,
+    fontWeight: TYPOGRAPHY.fontWeight.semiBold,
+    marginLeft: 6,
   },
 
   menuContainer: {
-    backgroundColor: theme.surface,
     marginHorizontal: 20,
-    borderRadius: 12,
-    paddingVertical: 10,
   },
 
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
@@ -297,13 +499,12 @@ const createStyles = (theme) => StyleSheet.create({
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
 
   menuIconContainer: {
-    width: 35,
-    height: 35,
-    borderRadius: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: theme.secondary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -311,51 +512,48 @@ const createStyles = (theme) => StyleSheet.create({
   },
 
   menuLabel: {
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: theme.textPrimary,
-    fontWeight: '500',
-    flex: 1,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
 
   menuItemRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    justifyContent: 'flex-end',
   },
 
   menuValue: {
-    fontSize: 14,
+    fontSize: TYPOGRAPHY.fontSize.md,
     color: theme.textSecondary,
+    fontWeight: TYPOGRAPHY.fontWeight.regular,
     marginRight: 10,
     textAlign: 'right',
     flexShrink: 1,
   },
 
   statusBadge: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 
   actionContainer: {
-    alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 30,
+    paddingHorizontal: 20,
+    marginTop: 20,
   },
 
   scanAgainButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: theme.primary,
-    paddingHorizontal: 30,
     paddingVertical: 15,
-    borderRadius: 25,
+    borderRadius: 12,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
 
   scanAgainText: {
