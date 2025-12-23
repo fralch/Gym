@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,64 +13,24 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SPACING, TYPOGRAPHY } from '../constants';
 import { useThemedStyles, useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/AuthContext';
-import UserCreateModal from '../components/ui/UserCreateModal';
 
 export default function LoginScreen() {
   const { theme } = useTheme();
   const styles = useThemedStyles(createStyles);
-  const { login, setAuthData } = useAuth();
+  const { login } = useAuth();
   const navigation = useNavigation();
 
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-
-  // Check for saved admin session on mount
-  useEffect(() => {
-    checkAdminSession();
-  }, []);
-
-  const checkAdminSession = async () => {
-    try {
-      const isAdmin = await AsyncStorage.getItem('is_admin');
-      if (isAdmin === 'true') {
-        // Auto-login admin and navigate to admin panel
-        navigation.navigate('AdminPanel');
-      }
-    } catch (error) {
-      console.error('Error checking admin session:', error);
-    }
-  };
-
-  const saveAdminSession = async () => {
-    try {
-      await AsyncStorage.setItem('is_admin', 'true');
-    } catch (error) {
-      console.error('Error saving admin session:', error);
-    }
-  };
 
   const handleLogin = async () => {
     if (!dni || !password) {
       Alert.alert('Error', 'Por favor ingresa tu DNI y contraseña');
-      return;
-    }
-
-    // Check for admin credentials
-    if (dni === 'admin' && password === 'password') {
-      // Save admin session
-      await saveAdminSession();
-      // Navigate to admin panel
-      navigation.navigate('AdminPanel');
-      // Clear fields
-      setDni('');
-      setPassword('');
       return;
     }
 
@@ -88,11 +48,6 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleUserCreated = (userData) => {
-    // Optionally, you can show a success message or update the UI
-    console.log('User created successfully:', userData);
   };
 
   return (
@@ -162,32 +117,8 @@ export default function LoginScreen() {
             <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
           )}
         </TouchableOpacity>
-
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>O</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <TouchableOpacity
-          style={styles.createUserButton}
-          onPress={() => setShowCreateUserModal(true)}
-          disabled={loading}
-        >
-          <MaterialIcons name="person-add" size={20} color={theme.primary} />
-          <Text style={styles.createUserButtonText}>Crear Usuario</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.infoText}>
-          Crea nuevos usuarios para el gimnasio
-        </Text>
       </View>
 
-      <UserCreateModal
-        visible={showCreateUserModal}
-        onClose={() => setShowCreateUserModal(false)}
-        onSuccess={handleUserCreated}
-      />
     </KeyboardAvoidingView>
   );
 }
@@ -267,44 +198,5 @@ const createStyles = (theme) =>
       color: theme.textInverse,
       fontSize: TYPOGRAPHY.fontSize.md,
       fontWeight: TYPOGRAPHY.fontWeight.semiBold,
-    },
-    divider: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: SPACING.xl,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: theme.border,
-    },
-    dividerText: {
-      color: theme.textSecondary,
-      paddingHorizontal: SPACING.md,
-      fontSize: TYPOGRAPHY.fontSize.sm,
-    },
-    createUserButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.cardBackground,
-      paddingVertical: SPACING.md,
-      borderRadius: SPACING.borderRadius,
-      borderWidth: 1,
-      borderColor: theme.primary,
-      minHeight: 50,
-    },
-    createUserButtonText: {
-      color: theme.primary,
-      fontSize: TYPOGRAPHY.fontSize.md,
-      fontWeight: TYPOGRAPHY.fontWeight.semiBold,
-      marginLeft: SPACING.sm,
-    },
-    infoText: {
-      textAlign: 'center',
-      color: theme.textSecondary,
-      fontSize: TYPOGRAPHY.fontSize.sm,
-      marginTop: SPACING.md,
-      lineHeight: 20,
     },
   });

@@ -48,14 +48,6 @@ export default function WelcomeScreen() {
           <Text style={styles.buttonTextPrimary}>Iniciar Sesión</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.buttonSecondary}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <MaterialIcons name="person-add" size={24} color={theme.primary} style={styles.buttonIcon} />
-          <Text style={styles.buttonTextSecondary}>Crear Cuenta</Text>
-        </TouchableOpacity>
-
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>Acceso Rápido</Text>
@@ -140,22 +132,6 @@ const createStyles = (theme) =>
     },
     buttonTextPrimary: {
       color: theme.textInverse,
-      fontSize: TYPOGRAPHY.fontSize.lg,
-      fontWeight: TYPOGRAPHY.fontWeight.bold,
-    },
-    buttonSecondary: {
-      backgroundColor: theme.background,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: SPACING.lg,
-      borderRadius: SPACING.borderRadius,
-      marginBottom: SPACING.lg,
-      borderWidth: 2,
-      borderColor: theme.primary,
-    },
-    buttonTextSecondary: {
-      color: theme.primary,
       fontSize: TYPOGRAPHY.fontSize.lg,
       fontWeight: TYPOGRAPHY.fontWeight.bold,
     },

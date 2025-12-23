@@ -3,7 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { LoginScreen, QrScreen, UserInfoScreen, StatsScreen, AdminPanelScreen, WelcomeScreen, RegisterScreen } from '../screens';
+import { LoginScreen, QrScreen, UserInfoScreen, StatsScreen, WelcomeScreen } from '../screens';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../hooks/useTheme';
 
@@ -41,15 +41,6 @@ export default function AppNavigator() {
           }}
         />
 
-        {/* Register Screen */}
-        <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
-          options={{
-            title: 'Crear Cuenta',
-          }}
-        />
-
         {/* QR Scanner */}
         <Stack.Screen
           name="QrScanner"
@@ -82,15 +73,6 @@ export default function AppNavigator() {
           component={StatsScreen}
           options={{
             title: 'Estadísticas',
-          }}
-        />
-
-        {/* Admin Panel - Accessible with admin credentials */}
-        <Stack.Screen
-          name="AdminPanel"
-          component={AdminPanelScreen}
-          options={{
-            title: 'Panel de Administración',
           }}
         />
       </Stack.Navigator>
